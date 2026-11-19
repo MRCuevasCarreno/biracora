@@ -1,0 +1,167 @@
+(() => {
+  'use strict';
+
+  const demoJobs = [
+    {
+      id: 'DEMO-003',
+      plate: 'DE-MO-03',
+      date: '2026-10-12',
+      owner: 'Cliente ficticio 03',
+      phone: '+56 9 0000 0003',
+      email: 'cliente03@example.invalid',
+      vehicle: 'Marca y modelo ficticios',
+      chassis: 'CHASIS-DEMO-0003',
+      mileage: 54321,
+      creator: 'Marco (cuenta demo)',
+      work: 'Revisión preventiva ficticia.\nSe verificó el sistema de frenos y se realizó una inspección visual general.',
+      supplies: 'Filtro de aceite (ejemplo)\nAceite de motor (ejemplo)',
+      notes: 'Registro de muestra. No corresponde a un vehículo ni a una persona real.',
+      photoCount: 0
+    },
+    {
+      id: 'DEMO-002',
+      plate: 'DE-MO-02',
+      date: '2026-08-03',
+      owner: 'Cliente ficticio 02',
+      phone: '',
+      email: '',
+      vehicle: 'Vehículo de demostración',
+      chassis: 'CHASIS-DEMO-0002',
+      mileage: 12000,
+      creator: 'Matías (cuenta demo)',
+      work: 'Trabajo de ejemplo: cambio de aceite y revisión de niveles.',
+      supplies: 'Aceite y filtro (elementos ficticios)',
+      notes: 'Datos inventados exclusivamente para mostrar el diseño.',
+      photoCount: 2
+    },
+    {
+      id: 'DEMO-001',
+      plate: 'DE-MO-01',
+      date: '2026-02-24',
+      owner: 'Cliente ficticio 01',
+      phone: '',
+      email: 'cliente01@example.invalid',
+      vehicle: 'Auto de prueba',
+      chassis: 'CHASIS-DEMO-0001',
+      mileage: 0,
+      creator: 'Marco (cuenta demo)',
+      work: 'Diagnóstico demostrativo sin datos de un trabajo real.',
+      supplies: 'Sin insumos en este ejemplo',
+      notes: 'Ejemplo ficticio; no usar como antecedente de mantenimiento.',
+      photoCount: 1
+    }
+  ];
+
+  const searchInput = document.getElementById('plate-search');
+  const clearButton = document.getElementById('clear-search');
+  const listElement = document.getElementById('jobs-list');
+  const emptyState = document.getElementById('empty-state');
+  const initialState = document.getElementById('initial-state');
+  const detailView = document.getElementById('detail-view');
+  const noSelection = document.getElementById('no-selection');
+  let selectedId = demoJobs[0].id;
+
+  function normalizePlate(value) {
+    return String(value || '').toUpperCase().replace(/[\s-]/g, '');
+  }
+
+  function formatDate(value) {
+    const parts = value.split('-');
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+
+  function safeText(elementId, value) {
+    document.getElementById(elementId).textContent = value || 'Sin información';
+  }
+
+  function renderList() {
+    const query = normalizePlate(searchInput.value);
+    const results = demoJobs.filter((job) => {
+      return !query || normalizePlate(job.plate) === query;
+    });
+
+    document.getElementById('job-count').textContent = String(demoJobs.length);
+    document.getElementById('results-label').textContent = query ? `${results.length} resultado${results.length === 1 ? '' : 's'}` : '';
+    clearButton.hidden = !searchInput.value;
+    listElement.replaceChildren();
+
+    results.forEach((job) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `job-item${job.id === selectedId ? ' selected' : ''}`;
+      button.setAttribute('aria-pressed', String(job.id === selectedId));
+      button.innerHTML = `<span class="job-item-top"><span class="job-plate"></span><span class="job-date"></span></span><span class="job-owner"></span><span class="job-vehicle"></span>`;
+      button.querySelector('.job-plate').textContent = job.plate;
+      button.querySelector('.job-date').textContent = formatDate(job.date);
+      button.querySelector('.job-owner').textContent = job.owner;
+      button.querySelector('.job-vehicle').textContent = job.vehicle;
+      button.addEventListener('click', () => {
+        selectedId = job.id;
+        renderList();
+        renderDetail(job);
+      });
+      listElement.appendChild(button);
+    });
+
+    emptyState.hidden = results.length > 0 || !query;
+    initialState.hidden = Boolean(query);
+    if (!query && results.length > 0) initialState.hidden = true;
+
+    const selectedJob = results.find((job) => job.id === selectedId);
+    if (selectedJob) {
+      renderDetail(selectedJob);
+    } else if (results.length) {
+      selectedId = results[0].id;
+      renderList();
+    } else {
+      detailView.hidden = true;
+      noSelection.hidden = false;
+    }
+  }
+
+  function renderDetail(job) {
+    detailView.hidden = false;
+    noSelection.hidden = true;
+    safeText('detail-plate-small', job.plate);
+    safeText('detail-plate', job.plate);
+    safeText('order-number', `· ${job.id}`);
+    safeText('owner-name', job.owner);
+    const contact = [job.phone, job.email].filter(Boolean).join(' · ');
+    safeText('owner-contact', contact || 'Contacto no indicado');
+    safeText('work-date', formatDate(job.date));
+    safeText('vehicle-name', job.vehicle);
+    safeText('chassis-number', job.chassis);
+    safeText('mileage', `${Number(job.mileage).toLocaleString('es-CL')} km`);
+    safeText('owner-inline', job.owner);
+    safeText('creator', job.creator);
+    safeText('work-description', job.work);
+    safeText('supplies', job.supplies);
+    safeText('observations', job.notes);
+    document.getElementById('photo-count').textContent = String(job.photoCount);
+
+    const gallery = document.getElementById('photo-gallery');
+    gallery.replaceChildren();
+    for (let index = 0; index < job.photoCount; index += 1) {
+      const placeholder = document.createElement('span');
+      placeholder.className = 'photo-placeholder';
+      placeholder.textContent = `Foto demo ${index + 1}`;
+      gallery.appendChild(placeholder);
+    }
+    if (job.photoCount === 0) {
+      const placeholder = document.createElement('span');
+      placeholder.className = 'photo-placeholder';
+      placeholder.textContent = 'Sin fotos';
+      gallery.appendChild(placeholder);
+    }
+  }
+
+  searchInput.addEventListener('input', renderList);
+  clearButton.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.focus();
+    renderList();
+  });
+  document.getElementById('print-button').addEventListener('click', () => window.print());
+
+  renderList();
+})();
