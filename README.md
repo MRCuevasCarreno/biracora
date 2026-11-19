@@ -1,58 +1,62 @@
-<<<<<<< HEAD
 # Bitácora Mecánica — prototipo visual
 
-Interfaz de demostración para “Bitácora Mecánica — Marco ‘Pelao’ Cifuentes”, preparada como archivos fuente para copiar manualmente a un proyecto de Google Apps Script. **No es un sistema conectado ni listo para producción.** No crea hojas, carpetas, despliegues ni servicios; tampoco requiere Node, npm o datos de clientes.
+Maqueta interactiva para revisar la interfaz de la bitácora. Solo usa datos ficticios en memoria del navegador; no se conecta a Supabase, Google Sheets ni Google Drive y no está lista para producción. No se han creado proyectos, cuentas, tablas, permisos, facturación ni despliegues.
 
-## Bloqueo de seguridad: identidad y roles
+## Arquitectura elegida para evaluar
 
-Las cuentas personales de Google no ofrecen una forma segura de combinar, sin configuración adicional, estas dos necesidades:
+La dirección acordada es Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojarían en Supabase, no en el Drive personal de Matías. Esta decisión todavía no está implementada ni configurada.
 
-1. Que el servidor acceda como Matías a su hoja y carpeta privadas de Drive.
-2. Que el servidor identifique de manera verificable a Matías o Marco en cada petición y aplique sus roles.
+La matriz de permisos que debe aplicar la futura base de datos es:
 
-`Session.getActiveUser().getEmail()` puede devolver una cadena vacía cuando la web app se ejecuta como su propietario. Google documenta la ejecución como el usuario que accede como alternativa, pero entonces las operaciones de Sheets/Drive quedan bajo los permisos de esa persona. Compartir los archivos con Marco para permitir escrituras le permitiría modificarlos directamente, fuera de las comprobaciones por rol de la aplicación.
+| Operación | ADMIN | MECHANIC |
+| --- | --- | --- |
+| Listar y leer trabajos | Todos | Todos |
+| Crear trabajos | Sí | Sí |
+| Editar trabajos | Todos | Solo los creados por ese usuario |
+| Eliminar trabajos | Todos | No |
+| Leer y agregar fotos | Según acceso al trabajo | Según acceso al trabajo |
+| Eliminar fotos | Sí | No |
 
-La ruta recomendada para conservar los archivos sin compartirlos con Marco es usar cuentas administradas de Google Workspace para ambos en el mismo dominio, y desplegar la web app para que se ejecute como Matías. En ese contexto `Session.getActiveUser()` suele exponer el correo del usuario activo; el servidor deniega si está vacío, no coincide con el dominio del propietario o no está autorizado. Esto requiere cambiar las cuentas personales por identidades administradas y probar el comportamiento con ambas antes de usar datos reales. El código no puede comprobar por sí solo el modo de ejecución seleccionado en el despliegue.
+Roles y autoría deberán derivarse de la identidad autenticada en el servidor/base de datos, nunca del selector ni de valores de rol enviados por el cliente. RLS debe proteger también las llamadas directas a la API. El bucket de fotos deberá ser privado y sus políticas deberán comprobar el permiso sobre el trabajo asociado. Una clave privilegiada de Supabase nunca debe incluirse en el navegador.
 
-Por eso esta entrega **falla de manera cerrada**: `APP_CONFIG.liveModeEnabled` está desactivado y `allowedUsers` está vacío; las funciones de API en `Code.gs` rechazan toda operación de datos reales. La interfaz solo muestra datos ficticios en memoria y no llama esas funciones. No introduzcas datos ni fotos reales.
+## Estado actual y límites
 
-El código compara el dominio de la identidad activa con el del usuario efectivo, pero eso no demuestra que la implementación esté configurada para ejecutarse como Matías. No cambies `liveModeEnabled` a `true` para “probar”: no activa almacenamiento y no resuelve el bloqueo. No se afirma que el control de acceso esté listo para producción.
+- `index.html`, `Styles.html` y `Client.html` presentan la maqueta visual: búsqueda exacta por patente normalizada, detalle, impresión y formularios de ejemplo.
+- El selector Matías/Admin y Marco/Mecánico es una simulación local, no es inicio de sesión ni prueba de identidad.
+- Crear, editar, eliminar y agregar/quitar elementos de fotos solo cambia los ejemplos de la página. Los cambios se pierden al recargar. No se seleccionan ni transfieren archivos.
+- `Code.gs` y `appsscript.json` pertenecen al prototipo anterior de Apps Script. `APP_CONFIG.liveModeEnabled` permanece desactivado, no hay usuarios autorizados configurados y las funciones de API rechazan operaciones reales. No lo cambies a `true`.
+- No se ha conectado Supabase ni existe código de persistencia real. No introduzcas datos ni fotos reales.
 
-No hay cuentas autorizadas configuradas. No se configuraron cuentas, OAuth, facturación, despliegues ni enlaces compartidos.
+La interfaz puede ocultar acciones según el rol simulado para facilitar la revisión visual; eso no es un control de seguridad. No se afirma que la autenticación o el control de acceso estén listos para producción.
 
-## Archivos
+## Probar la maqueta
 
-- `Code.gs`: entrada HTML y endpoints deliberadamente bloqueados con comprobación de identidad y rol.
-- `Index.html`: interfaz adaptable y orden de trabajo ficticia.
-- `Styles.html`: estilos de escritorio/móvil y CSS de impresión.
-- `Client.html`: registros inventados, búsqueda exacta por patente normalizada y acciones de impresión.
-- `appsscript.json`: zona horaria `America/Santiago` y runtime V8.
+1. Abre la vista previa independiente generada para la sesión. `index.html` contiene plantillas de Apps Script y no funciona directamente como archivo local.
+2. Prueba `DE-MO-03`, `de mo 03` y `DEMO03`: deben encontrar el mismo registro ficticio. La búsqueda es exacta después de ignorar mayúsculas, espacios y guiones.
+3. Cambia el selector entre Matías y Marco. Como Marco, verifica que se puede editar un ejemplo creado por Marco, pero no uno creado por Matías, y que no aparece la acción de eliminar.
+4. Como Matías, prueba eliminar un ejemplo y quitar una foto de ejemplo. Estas acciones no afectan archivos ni datos persistentes.
+5. Crea y edita ejemplos, usa la impresión y recarga para comprobar que la lista vuelve a sus registros iniciales.
+6. Usa solo datos inventados. No configures un proyecto, no conectes credenciales y no uses la maqueta con información real.
 
-`prompt-inicial.txt` se conserva sin modificaciones.
+La página no llama `google.script.run`, no usa `fetch` para acceder a servicios, no carga ni almacena credenciales y no persiste cambios en `localStorage` o `sessionStorage`.
 
-## Probar el prototipo
+## Diseño técnico pendiente antes de Supabase
 
-1. Copia manualmente los cinco archivos a un proyecto de Apps Script para preparar la prueba. El HTML usa plantillas de Apps Script y no funciona si se abre directamente como archivo local.
-2. No se ha creado ni desplegado ningún proyecto. Cuando decidas probarlo en Google, usa una implementación de prueba de Apps Script; no configures una implementación pública ni compartas los archivos. `Code.gs` no realiza operaciones reales incluso si se muestra la interfaz.
-3. Busca `DE-MO-03`, `de mo 03` y `DEMO03`: deben mostrar el mismo registro. La búsqueda es **exacta después de normalizar**; no es parcial. Una patente sin coincidencia muestra un mensaje, y el campo vacío lista los ejemplos.
-4. Usa **Imprimir orden** para abrir la impresión del navegador. La orden excluye fotos de ejemplo y controles de navegación.
-5. Verifica que Nuevo trabajo, Editar, Eliminar y Agregar fotos sigan deshabilitados.
-6. Si pruebas directamente `apiListJobs`, `apiCreateJob`, `apiUpdateJob`, `apiDeleteJob` o `apiUploadPhoto` desde el editor Apps Script, deben fallar con acceso denegado o con el aviso de modo real deshabilitado. No devuelven registros ni escriben datos.
+1. Definir tablas, restricciones e índices. Como base: perfil/rol asociado a `auth.users`, trabajos con creador autenticado, y metadatos de fotos asociados a un trabajo.
+2. Implementar RLS con denegación por defecto: ambos roles leen todos los trabajos; ambos crean con `created_by = auth.uid()`; mecánicos actualizan solo los propios; administradores actualizan y eliminan cualquier trabajo.
+3. Evitar que las actualizaciones cambien la autoría o el rol de una cuenta. El rol debe poder cambiarse solo por un flujo administrativo confiable.
+4. Usar un bucket privado. Las reglas de Storage deben autorizar cada lectura/carga/eliminación según el trabajo relacionado; eliminar fotos solo como administrador. Revisar también el ciclo de vida de metadatos y archivos.
+5. Añadir validación de campos, límites de tamaño y tipos de imágenes, tratamiento explícito de errores y enlaces privados de duración limitada si se necesitan para mostrar fotos.
+6. Probar RLS y Storage con usuarios ficticios: anónimo, administrador, mecánico propietario y mecánico ajeno; probar llamadas directas a la API, cambio de IDs, rol/autoría falsificados, acceso a archivos y errores.
+7. Revisar las políticas, respaldos, retención, sesiones y costos antes de decidir si se habilitan datos reales.
 
-La demo funciona solo con datos ficticios en memoria; no llama `google.script.run`. No se hizo una implementación de prueba porque se pidió no configurar despliegues.
+La documentación oficial describe [Supabase Auth](https://supabase.com/docs/guides/auth), [Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security) y [control de acceso a Storage](https://supabase.com/docs/guides/storage/security/access-control). El plan gratuito publica límites de almacenamiento —incluidos 500 MB de base de datos y 1 GB de archivos— y pausa proyectos tras una semana de inactividad. Revisar [precios y límites actuales](https://supabase.com/pricing) antes de depender del servicio; pueden cambiar.
 
-## Pendiente antes de una versión real
+## Archivos del prototipo
 
-- Crear/seleccionar cuentas Workspace administradas para Matías y Marco bajo el mismo dominio; comprobar que `Session.getActiveUser()` devuelva la identidad esperada en una implementación de prueba y que la web app se ejecute como Matías.
-- Configurar roles solo para identidades verificadas y revisar la autorización en cada operación, incluidos los permisos por registro; hacer una revisión de seguridad antes de habilitar datos reales.
-- Recién después de resolverlo, crear manualmente una hoja privada y una carpeta privada en Drive propiedad de Matías. En la ruta Workspace, no compartirlas con Marco; en otra arquitectura, conceder acceso mínimo solo a la identidad de servidor elegida y nunca hacer los archivos públicos.
-- Implementar almacenamiento con columnas de creador verificable y marcas de tiempo, validación de servidor, búsquedas, gestión de roles y pruebas de acceso directo a cada operación. Validar también permisos para cualquier archivo de foto.
-- Implementar el formulario, validaciones, compresión, límites por archivo y total, formatos permitidos, borrado/retención de fotos y errores de carga.
-- Ejecutar pruebas de aceptación con ambas cuentas antes de cualquier despliegue. En la versión actual no se puede comprobar creación real, permisos sobre registros, almacenamiento de fotos ni acceso desde ambas cuentas.
-
-La zona horaria prevista es `America/Santiago`. Debe configurarse tanto en el proyecto Apps Script como en la hoja cuando se implemente persistencia, y probarse en los cambios de horario.
-
-### Cuotas y disponibilidad
-
-Apps Script y Drive aplican cuotas y límites de uso que varían según la cuenta y pueden cambiar. La capacidad de Google One se comparte con otros productos y no equivale a una cuota garantizada para esta aplicación. No se promete costo cero absoluto, capacidad ilimitada ni disponibilidad garantizada.
-=======
+- `index.html`: interfaz de demostración.
+- `Styles.html`: estilos adaptables para escritorio, móvil e impresión.
+- `Client.html`: datos inventados y comportamiento solo en memoria.
+- `Code.gs`: restos del servidor Apps Script, deliberadamente bloqueado.
+- `appsscript.json`: configuración del prototipo Apps Script.
+- `prompt-inicial.txt`: prompt original, conservado.
