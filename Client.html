@@ -12,7 +12,8 @@
       vehicle: 'Marca y modelo ficticios',
       chassis: 'CHASIS-DEMO-0003',
       mileage: 54321,
-      creator: 'Marco (cuenta demo)',
+      creator: 'Marco · Mecánico demo',
+      creatorId: 'demo-marco',
       work: 'Revisión preventiva ficticia.\nSe verificó el sistema de frenos y se realizó una inspección visual general.',
       supplies: 'Filtro de aceite (ejemplo)\nAceite de motor (ejemplo)',
       notes: 'Registro de muestra. No corresponde a un vehículo ni a una persona real.',
@@ -28,7 +29,8 @@
       vehicle: 'Vehículo de demostración',
       chassis: 'CHASIS-DEMO-0002',
       mileage: 12000,
-      creator: 'Matías (cuenta demo)',
+      creator: 'Matías · Admin demo',
+      creatorId: 'demo-matias',
       work: 'Trabajo de ejemplo: cambio de aceite y revisión de niveles.',
       supplies: 'Aceite y filtro (elementos ficticios)',
       notes: 'Datos inventados exclusivamente para mostrar el diseño.',
@@ -44,7 +46,8 @@
       vehicle: 'Auto de prueba',
       chassis: 'CHASIS-DEMO-0001',
       mileage: 0,
-      creator: 'Marco (cuenta demo)',
+      creator: 'Marco · Mecánico demo',
+      creatorId: 'demo-marco',
       work: 'Diagnóstico demostrativo sin datos de un trabajo real.',
       supplies: 'Sin insumos en este ejemplo',
       notes: 'Ejemplo ficticio; no usar como antecedente de mantenimiento.',
@@ -59,19 +62,44 @@
   const initialState = document.getElementById('initial-state');
   const detailView = document.getElementById('detail-view');
   const noSelection = document.getElementById('no-selection');
+  const roleSelect = document.getElementById('demo-role');
+  const profileName = document.getElementById('profile-name');
+  const profileAvatar = document.getElementById('profile-avatar');
+  const jobDialog = document.getElementById('job-dialog');
+  const jobForm = document.getElementById('job-form');
+  let currentRole = 'ADMIN';
   let selectedId = demoJobs[0].id;
+  let editingJobId = null;
+  let nextDemoNumber = 4;
 
   function normalizePlate(value) {
     return String(value || '').toUpperCase().replace(/[\s-]/g, '');
   }
 
   function formatDate(value) {
+    if (!value) return 'Sin información';
     const parts = value.split('-');
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
 
   function safeText(elementId, value) {
     document.getElementById(elementId).textContent = value || 'Sin información';
+  }
+
+  function currentUserName() {
+    return currentRole === 'ADMIN' ? 'Matías · Admin demo' : 'Marco · Mecánico demo';
+  }
+
+  function currentUserId() {
+    return currentRole === 'ADMIN' ? 'demo-matias' : 'demo-marco';
+  }
+
+  function canEdit(job) {
+    return currentRole === 'ADMIN' || job.creatorId === currentUserId();
+  }
+
+  function selectedJob() {
+    return demoJobs.find((job) => job.id === selectedId);
   }
 
   function renderList() {
@@ -90,7 +118,7 @@
       button.type = 'button';
       button.className = `job-item${job.id === selectedId ? ' selected' : ''}`;
       button.setAttribute('aria-pressed', String(job.id === selectedId));
-      button.innerHTML = `<span class="job-item-top"><span class="job-plate"></span><span class="job-date"></span></span><span class="job-owner"></span><span class="job-vehicle"></span>`;
+      button.innerHTML = '<span class="job-item-top"><span class="job-plate"></span><span class="job-date"></span></span><span class="job-owner"></span><span class="job-vehicle"></span>';
       button.querySelector('.job-plate').textContent = job.plate;
       button.querySelector('.job-date').textContent = formatDate(job.date);
       button.querySelector('.job-owner').textContent = job.owner;
@@ -98,21 +126,19 @@
       button.addEventListener('click', () => {
         selectedId = job.id;
         renderList();
-        renderDetail(job);
       });
       listElement.appendChild(button);
     });
 
     emptyState.hidden = results.length > 0 || !query;
-    initialState.hidden = Boolean(query);
-    if (!query && results.length > 0) initialState.hidden = true;
+    initialState.hidden = Boolean(query) || results.length > 0;
 
-    const selectedJob = results.find((job) => job.id === selectedId);
-    if (selectedJob) {
-      renderDetail(selectedJob);
+    const currentSelection = results.find((job) => job.id === selectedId);
+    if (currentSelection) {
+      renderDetail(currentSelection);
     } else if (results.length) {
       selectedId = results[0].id;
-      renderList();
+      renderDetail(results[0]);
     } else {
       detailView.hidden = true;
       noSelection.hidden = false;
@@ -139,13 +165,33 @@
     safeText('observations', job.notes);
     document.getElementById('photo-count').textContent = String(job.photoCount);
 
+    const editButton = document.getElementById('edit-job-button');
+    editButton.hidden = !canEdit(job);
+    editButton.title = canEdit(job) ? 'Editar este ejemplo ficticio' : 'En esta simulación, el mecánico solo edita trabajos propios';
+    document.getElementById('delete-job-button').hidden = currentRole !== 'ADMIN';
+
     const gallery = document.getElementById('photo-gallery');
     gallery.replaceChildren();
     for (let index = 0; index < job.photoCount; index += 1) {
+      const tile = document.createElement('div');
+      tile.className = 'photo-tile';
       const placeholder = document.createElement('span');
       placeholder.className = 'photo-placeholder';
-      placeholder.textContent = `Foto demo ${index + 1}`;
-      gallery.appendChild(placeholder);
+      placeholder.textContent = `Ejemplo ${index + 1}`;
+      tile.appendChild(placeholder);
+      if (currentRole === 'ADMIN') {
+        const removeButton = document.createElement('button');
+        removeButton.className = 'photo-remove';
+        removeButton.type = 'button';
+        removeButton.textContent = 'Quitar ejemplo';
+        removeButton.setAttribute('aria-label', `Quitar foto ficticia ${index + 1}`);
+        removeButton.addEventListener('click', () => {
+          job.photoCount = Math.max(0, job.photoCount - 1);
+          renderDetail(job);
+        });
+        tile.appendChild(removeButton);
+      }
+      gallery.appendChild(tile);
     }
     if (job.photoCount === 0) {
       const placeholder = document.createElement('span');
@@ -155,10 +201,83 @@
     }
   }
 
+  function openJobDialog(job) {
+    editingJobId = job ? job.id : null;
+    jobForm.reset();
+    document.getElementById('job-dialog-title').textContent = job ? 'Editar trabajo de ejemplo' : 'Nuevo trabajo de ejemplo';
+    jobForm.elements.namedItem('date').value = job ? job.date : '2026-11-19';
+    jobForm.elements.namedItem('mileage').value = job ? job.mileage : 0;
+    if (job) {
+      ['plate', 'owner', 'phone', 'email', 'vehicle', 'chassis', 'work', 'supplies', 'notes'].forEach((field) => {
+        jobForm.elements.namedItem(field).value = job[field] || '';
+      });
+    } else {
+      jobForm.elements.namedItem('plate').value = 'DE-MO-04';
+      jobForm.elements.namedItem('owner').value = 'Cliente ficticio 04';
+      jobForm.elements.namedItem('vehicle').value = 'Vehículo de demostración';
+      jobForm.elements.namedItem('chassis').value = 'CHASIS-DEMO-0004';
+      jobForm.elements.namedItem('work').value = 'Trabajo ficticio para revisar el formulario.';
+      jobForm.elements.namedItem('supplies').value = 'Insumos de ejemplo';
+      jobForm.elements.namedItem('notes').value = 'No corresponde a un cliente ni vehículo real.';
+    }
+    jobDialog.showModal();
+  }
+
+  roleSelect.addEventListener('change', () => {
+    currentRole = roleSelect.value;
+    profileName.textContent = currentRole === 'ADMIN' ? 'Matías · Admin' : 'Marco · Mecánico';
+    profileAvatar.textContent = currentRole === 'ADMIN' ? 'MT' : 'MR';
+    renderList();
+  });
   searchInput.addEventListener('input', renderList);
   clearButton.addEventListener('click', () => {
     searchInput.value = '';
     searchInput.focus();
+    renderList();
+  });
+  document.getElementById('new-job-button').addEventListener('click', () => openJobDialog(null));
+  document.getElementById('edit-job-button').addEventListener('click', () => {
+    const job = selectedJob();
+    if (job && canEdit(job)) openJobDialog(job);
+  });
+  document.getElementById('delete-job-button').addEventListener('click', () => {
+    const job = selectedJob();
+    if (currentRole !== 'ADMIN' || !job) return;
+    if (!window.confirm(`¿Quitar el ejemplo ficticio ${job.plate} de esta vista?`)) return;
+    demoJobs.splice(demoJobs.findIndex((entry) => entry.id === job.id), 1);
+    selectedId = demoJobs.length ? demoJobs[0].id : '';
+    renderList();
+  });
+  document.getElementById('add-demo-photo-button').addEventListener('click', () => {
+    const job = selectedJob();
+    if (!job) return;
+    job.photoCount += 1;
+    renderDetail(job);
+  });
+  document.getElementById('close-job-dialog').addEventListener('click', () => jobDialog.close());
+  document.getElementById('cancel-job-dialog').addEventListener('click', () => jobDialog.close());
+  jobForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(jobForm).entries());
+    const job = editingJobId ? demoJobs.find((entry) => entry.id === editingJobId) : null;
+    if (job && !canEdit(job)) return;
+    if (job) {
+      Object.assign(job, values, { mileage: Number(values.mileage) });
+    } else {
+      const nextId = `DEMO-${String(nextDemoNumber).padStart(3, '0')}`;
+      nextDemoNumber += 1;
+      demoJobs.unshift({
+        ...values,
+        id: nextId,
+        mileage: Number(values.mileage),
+        creator: currentUserName(),
+        creatorId: currentUserId(),
+        photoCount: 0
+      });
+      selectedId = nextId;
+      searchInput.value = '';
+    }
+    jobDialog.close();
     renderList();
   });
   document.getElementById('print-button').addEventListener('click', () => window.print());

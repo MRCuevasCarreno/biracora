@@ -1,13 +1,10 @@
 const APP_CONFIG = Object.freeze({
   liveModeEnabled: false,
-  allowedUsers: Object.freeze({
-    'matias@example.com': 'ADMIN',
-    'marco@example.com': 'MECHANIC'
-  })
+  allowedUsers: Object.freeze({})
 });
 
 function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
+  return HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('Bitácora Mecánica — Demo')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -51,23 +48,31 @@ function apiUploadPhoto(jobId, photo) {
 }
 
 function requireLiveRole_(permittedRoles) {
-  let email = '';
+  let activeEmail = '';
+  let effectiveEmail = '';
   try {
-    email = Session.getActiveUser().getEmail().trim().toLowerCase();
+    activeEmail = Session.getActiveUser().getEmail().trim().toLowerCase();
+    effectiveEmail = Session.getEffectiveUser().getEmail().trim().toLowerCase();
   } catch (error) {
     throw new Error('No se pudo verificar tu cuenta de Google. Acceso denegado.');
   }
 
-  if (!email || !Object.prototype.hasOwnProperty.call(APP_CONFIG.allowedUsers, email)) {
+  const activeDomain = activeEmail.split('@')[1] || '';
+  const effectiveDomain = effectiveEmail.split('@')[1] || '';
+  if (!activeEmail || !effectiveEmail || !activeDomain || activeDomain !== effectiveDomain) {
+    throw new Error('No se pudo verificar una identidad del dominio autorizado. Acceso denegado.');
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(APP_CONFIG.allowedUsers, activeEmail)) {
     throw new Error('No se pudo verificar una cuenta autorizada. Acceso denegado.');
   }
 
-  const role = APP_CONFIG.allowedUsers[email];
+  const role = APP_CONFIG.allowedUsers[activeEmail];
   if (permittedRoles.indexOf(role) === -1) {
     throw new Error('Tu rol no permite esta operación.');
   }
 
-  return { email: email, role: role };
+  return { email: activeEmail, role: role };
 }
 
 function liveModeBlocked_() {
