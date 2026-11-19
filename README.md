@@ -6,7 +6,7 @@ Maqueta interactiva para revisar la interfaz de la bitácora. Solo usa datos fic
 
 La dirección acordada es Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojarían en Supabase, no en el Drive personal de Matías. Esta decisión todavía no está implementada ni configurada.
 
-La matriz de permisos que debe aplicar la futura base de datos es:
+La matriz de permisos de la futura base de datos es:
 
 | Operación | ADMIN | MECHANIC |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ La matriz de permisos que debe aplicar la futura base de datos es:
 | Leer y agregar fotos | Según acceso al trabajo | Según acceso al trabajo |
 | Eliminar fotos | Sí | No |
 
-Roles y autoría deberán derivarse de la identidad autenticada en el servidor/base de datos, nunca del selector ni de valores de rol enviados por el cliente. RLS debe proteger también las llamadas directas a la API. El bucket de fotos deberá ser privado y sus políticas deberán comprobar el permiso sobre el trabajo asociado. Una clave privilegiada de Supabase nunca debe incluirse en el navegador.
+Roles y autoría deben derivarse de la identidad autenticada en la base de datos, nunca del selector ni de valores de rol enviados por el cliente. Una clave privilegiada de Supabase nunca debe incluirse en el navegador.
 
 ## Estado actual y límites
 
@@ -25,6 +25,8 @@ Roles y autoría deberán derivarse de la identidad autenticada en el servidor/b
 - El selector Matías/Admin y Marco/Mecánico es una simulación local, no es inicio de sesión ni prueba de identidad.
 - Crear, editar, eliminar y agregar/quitar elementos de fotos solo cambia los ejemplos de la página. Los cambios se pierden al recargar. No se seleccionan ni transfieren archivos.
 - `Code.gs` y `appsscript.json` pertenecen al prototipo anterior de Apps Script. `APP_CONFIG.liveModeEnabled` permanece desactivado, no hay usuarios autorizados configurados y las funciones de API rechazan operaciones reales. No lo cambies a `true`.
+- `supabase/migrations/20261119210000_initial_rls_schema.sql` define un esquema y políticas RLS para una futura base Supabase. Es código sin aplicar: no hay proyecto, cuentas, tablas, permisos alojados ni despliegues configurados.
+- `supabase/tests/database/rls.sql` contiene pruebas pgTAP con usuarios, trabajos y fotos ficticios; no crea cuentas utilizables ni usa contraseñas reales.
 - No se ha conectado Supabase ni existe código de persistencia real. No introduzcas datos ni fotos reales.
 
 La interfaz puede ocultar acciones según el rol simulado para facilitar la revisión visual; eso no es un control de seguridad. No se afirma que la autenticación o el control de acceso estén listos para producción.
@@ -40,15 +42,17 @@ La interfaz puede ocultar acciones según el rol simulado para facilitar la revi
 
 La página no llama `google.script.run`, no usa `fetch` para acceder a servicios, no carga ni almacena credenciales y no persiste cambios en `localStorage` o `sessionStorage`.
 
-## Diseño técnico pendiente antes de Supabase
+## Esquema y pruebas de seguridad (sin aplicar)
 
-1. Definir tablas, restricciones e índices. Como base: perfil/rol asociado a `auth.users`, trabajos con creador autenticado, y metadatos de fotos asociados a un trabajo.
-2. Implementar RLS con denegación por defecto: ambos roles leen todos los trabajos; ambos crean con `created_by = auth.uid()`; mecánicos actualizan solo los propios; administradores actualizan y eliminan cualquier trabajo.
-3. Evitar que las actualizaciones cambien la autoría o el rol de una cuenta. El rol debe poder cambiarse solo por un flujo administrativo confiable.
-4. Usar un bucket privado. Las reglas de Storage deben autorizar cada lectura/carga/eliminación según el trabajo relacionado; eliminar fotos solo como administrador. Revisar también el ciclo de vida de metadatos y archivos.
-5. Añadir validación de campos, límites de tamaño y tipos de imágenes, tratamiento explícito de errores y enlaces privados de duración limitada si se necesitan para mostrar fotos.
-6. Probar RLS y Storage con usuarios ficticios: anónimo, administrador, mecánico propietario y mecánico ajeno; probar llamadas directas a la API, cambio de IDs, rol/autoría falsificados, acceso a archivos y errores.
-7. Revisar las políticas, respaldos, retención, sesiones y costos antes de decidir si se habilitan datos reales.
+La migración define `profiles` ligado a `auth.users`, `jobs` con autoría y `job_photos` con metadatos/ruta de almacenamiento. Un trigger crea cada perfil como `MECHANIC`, sin confiar en metadatos del usuario. La migración no concede a clientes permisos para insertar/cambiar IDs, autoría o roles; la política de rol no permite escrituras desde el cliente. La asignación operativa de administradores aún requiere un proceso confiable que no está definido ni implementado.
+
+Las políticas RLS cubren llamadas directas a las tablas y a `storage.objects`: ambos roles pueden leer todos los trabajos visibles y agregar metadatos/fotos; mecánicos solo actualizan trabajos propios; solo ADMIN puede borrar trabajos, metadatos y archivos. El bucket `work-photos` se declara privado en la migración. El archivo debe tener una fila de metadatos antes de poder cargarse; la lectura requiere metadatos asociados. El borrado de un trabajo elimina metadatos en cascada, no los objetos de Storage: antes de borrar, un futuro cliente debe coordinar la limpieza de archivos. ADMIN puede borrar objetos huérfanos. No se configuran aquí tipos/tamaños máximos, carga de archivos, enlaces firmados ni un proceso administrativo.
+
+Las pruebas usan únicamente identidades `example.invalid` y UUIDs de fixture. Cubren acceso anónimo, lectura/listado, creación, autoría derivada de `auth.uid()`, edición/borrado por rol, fotos y Storage, cambio de IDs, y falsificación de rol/autoría mediante llamadas SQL directas.
+
+Para ejecutarlas se necesita Supabase CLI, Docker y el stack local de Supabase; ninguno estaba disponible en este entorno (`supabase`, `docker`, `psql`, `node` y `npm` no están instalados). No instalé dependencias ni apliqué la migración. Cuando esas herramientas estén disponibles y se inicialice la configuración local, inicia el stack con `supabase start` y ejecuta `supabase test db`. La suite no se ha ejecutado aquí, por lo que las políticas son una propuesta de desarrollo, no una garantía de producción.
+
+Antes de habilitar datos reales aún hay que definir el alta segura de administradores, límites/tipos de archivo, errores y enlaces firmados, limpieza coordinada de Storage, respaldos, retención, sesiones, costos y revisión independiente de políticas. No se afirma que la seguridad esté lista para producción.
 
 La documentación oficial describe [Supabase Auth](https://supabase.com/docs/guides/auth), [Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security) y [control de acceso a Storage](https://supabase.com/docs/guides/storage/security/access-control). El plan gratuito publica límites de almacenamiento —incluidos 500 MB de base de datos y 1 GB de archivos— y pausa proyectos tras una semana de inactividad. Revisar [precios y límites actuales](https://supabase.com/pricing) antes de depender del servicio; pueden cambiar.
 
