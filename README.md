@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Bitácora Mecánica — prototipo visual
 
 Interfaz de demostración para “Bitácora Mecánica — Marco ‘Pelao’ Cifuentes”, preparada como archivos fuente para copiar manualmente a un proyecto de Google Apps Script. **No es un sistema conectado ni listo para producción.** No crea hojas, carpetas, despliegues ni servicios; tampoco requiere Node, npm o datos de clientes.
@@ -51,3 +52,6 @@ La zona horaria prevista es `America/Santiago`. Debe configurarse tanto en el pr
 ### Cuotas y disponibilidad
 
 Apps Script y Drive aplican cuotas y límites de uso que varían según la cuenta y pueden cambiar. La capacidad de Google One se comparte con otros productos y no equivale a una cuota garantizada para esta aplicación. No se promete costo cero absoluto, capacidad ilimitada ni disponibilidad garantizada.
+=======
+# biracora
+>>>>>>> origin/main
