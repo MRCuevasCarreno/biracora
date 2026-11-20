@@ -238,8 +238,7 @@ values ('work-photos', 'work-photos', false)
 on conflict (id) do update
 set name = excluded.name, public = false;
 
-alter table storage.objects enable row level security;
-
+-- Supabase Storage enables RLS on storage.objects by default.
 create policy work_photos_read_with_metadata
 on storage.objects
 for select

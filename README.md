@@ -1,10 +1,10 @@
 # Bitácora Mecánica — prototipo visual
 
-Maqueta interactiva para revisar la interfaz de la bitácora. Solo usa datos ficticios en memoria del navegador; no se conecta a Supabase, Google Sheets ni Google Drive y no está lista para producción. No se han creado proyectos, cuentas, tablas, permisos, facturación ni despliegues.
+Maqueta interactiva para revisar la interfaz de la bitácora. Solo usa datos ficticios en memoria del navegador; no se conecta a Supabase, Google Sheets ni Google Drive y no está lista para producción. No hay proyectos ni cuentas remotas, facturación ni despliegues. El esquema se probó únicamente en una instancia local de Supabase con fixtures ficticios.
 
 ## Arquitectura elegida para evaluar
 
-La dirección acordada es Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojarían en Supabase, no en el Drive personal de Matías. Esta decisión todavía no está implementada ni configurada.
+La dirección acordada es Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojarían en Supabase, no en el Drive personal de Matías. Esta arquitectura aún no está conectada a la maqueta ni desplegada.
 
 La matriz de permisos de la futura base de datos es:
 
@@ -25,7 +25,7 @@ Roles y autoría deben derivarse de la identidad autenticada en la base de datos
 - El selector Matías/Admin y Marco/Mecánico es una simulación local, no es inicio de sesión ni prueba de identidad.
 - Crear, editar, eliminar y agregar/quitar elementos de fotos solo cambia los ejemplos de la página. Los cambios se pierden al recargar. No se seleccionan ni transfieren archivos.
 - `Code.gs` y `appsscript.json` pertenecen al prototipo anterior de Apps Script. `APP_CONFIG.liveModeEnabled` permanece desactivado, no hay usuarios autorizados configurados y las funciones de API rechazan operaciones reales. No lo cambies a `true`.
-- `supabase/migrations/20261119210000_initial_rls_schema.sql` define un esquema y políticas RLS para una futura base Supabase. Es código sin aplicar: no hay proyecto, cuentas, tablas, permisos alojados ni despliegues configurados.
+- `supabase/migrations/20261119210000_initial_rls_schema.sql` define el esquema y las políticas RLS. Se aplicó únicamente a la base Supabase local de pruebas; no hay proyecto, cuentas ni tablas alojados, ni permisos remotos ni despliegues configurados.
 - `supabase/tests/database/rls.sql` contiene pruebas pgTAP con usuarios, trabajos y fotos ficticios; no crea cuentas utilizables ni usa contraseñas reales.
 - No se ha conectado Supabase ni existe código de persistencia real. No introduzcas datos ni fotos reales.
 
@@ -42,7 +42,7 @@ La interfaz puede ocultar acciones según el rol simulado para facilitar la revi
 
 La página no llama `google.script.run`, no usa `fetch` para acceder a servicios, no carga ni almacena credenciales y no persiste cambios en `localStorage` o `sessionStorage`.
 
-## Esquema y pruebas de seguridad (sin aplicar)
+## Esquema y pruebas de seguridad (solo local, sin desplegar)
 
 La migración define `profiles` ligado a `auth.users`, `jobs` con autoría y `job_photos` con metadatos/ruta de almacenamiento. Un trigger crea cada perfil como `MECHANIC`, sin confiar en metadatos del usuario. La migración no concede a clientes permisos para insertar/cambiar IDs, autoría o roles; la política de rol no permite escrituras desde el cliente. La asignación operativa de administradores aún requiere un proceso confiable que no está definido ni implementado.
 
@@ -50,7 +50,7 @@ Las políticas RLS cubren llamadas directas a las tablas y a `storage.objects`: 
 
 Las pruebas usan únicamente identidades `example.invalid` y UUIDs de fixture. Cubren acceso anónimo, lectura/listado, creación, autoría derivada de `auth.uid()`, edición/borrado por rol, fotos y Storage, cambio de IDs, y falsificación de rol/autoría mediante llamadas SQL directas.
 
-Para ejecutarlas se necesita Supabase CLI, Docker y el stack local de Supabase; ninguno estaba disponible en este entorno (`supabase`, `docker`, `psql`, `node` y `npm` no están instalados). No instalé dependencias ni apliqué la migración. Cuando esas herramientas estén disponibles y se inicialice la configuración local, inicia el stack con `supabase start` y ejecuta `supabase test db`. La suite no se ha ejecutado aquí, por lo que las políticas son una propuesta de desarrollo, no una garantía de producción.
+Supabase CLI 3.2.0 y Docker Desktop se usaron con una base Postgres local; la configuración `supabase/config.toml` no está vinculada a un proyecto remoto. La migración se aplicó con `supabase db reset --no-seed` y `supabase test db` pasó las 38 pruebas pgTAP. Se usaron únicamente identidades `example.invalid` y fixtures ficticios; la prueba hace rollback de sus datos. No se inició la API local completa ni se conectó la maqueta. Las pruebas verifican este esquema en desarrollo, no son una garantía de producción.
 
 Antes de habilitar datos reales aún hay que definir el alta segura de administradores, límites/tipos de archivo, errores y enlaces firmados, limpieza coordinada de Storage, respaldos, retención, sesiones, costos y revisión independiente de políticas. No se afirma que la seguridad esté lista para producción.
 

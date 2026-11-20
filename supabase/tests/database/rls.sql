@@ -15,6 +15,19 @@ exception
 end;
 $$;
 
+create function pg_temp.affected_rows(p_sql text)
+returns integer
+language plpgsql
+as $$
+declare
+  affected integer;
+begin
+  execute p_sql;
+  get diagnostics affected = row_count;
+  return affected;
+end;
+$$;
+
 insert into auth.users (
   id,
   aud,
@@ -119,9 +132,10 @@ select ok(
   ),
   'anonymous direct job reads are denied'
 );
-select ok(
-  pg_temp.was_denied('select count(*) from storage.objects'),
-  'anonymous direct photo reads are denied'
+select is(
+  (select count(*)::integer from storage.objects),
+  0,
+  'anonymous direct photo reads return no files'
 );
 
 set local role authenticated;
@@ -196,15 +210,11 @@ select is(
 );
 
 select is(
-  (
-    with changed as (
-      update public.jobs
-      set notes = 'No debe cambiar'
-      where id = '10000000-0000-0000-0000-000000000002'
-      returning id
-    )
-    select count(*)::integer from changed
-  ),
+  pg_temp.affected_rows($command$
+    update public.jobs
+    set notes = 'No debe cambiar'
+    where id = '10000000-0000-0000-0000-000000000002'
+  $command$),
   0,
   'mechanic cannot edit another author''s job by changing the target ID'
 );
@@ -215,39 +225,30 @@ select is(
 );
 
 select is(
-  (
-    with removed as (
-      delete from public.jobs
-      where id = '10000000-0000-0000-0000-000000000002'
-      returning id
-    )
-    select count(*)::integer from removed
-  ),
+  pg_temp.affected_rows($command$
+    delete from public.jobs
+    where id = '10000000-0000-0000-0000-000000000002'
+  $command$),
   0,
   'mechanic cannot delete a job'
 );
 select is(
-  (
-    with removed as (
-      delete from public.job_photos
-      where id = '20000000-0000-0000-0000-000000000002'
-      returning id
-    )
-    select count(*)::integer from removed
-  ),
+  pg_temp.affected_rows($command$
+    delete from public.job_photos
+    where id = '20000000-0000-0000-0000-000000000002'
+  $command$),
   0,
   'mechanic cannot delete photo metadata'
 );
+-- Bypass Storage's direct-delete guard in this transaction to exercise RLS.
+set local storage.allow_delete_query = 'true';
+
 select is(
-  (
-    with removed as (
-      delete from storage.objects
-      where bucket_id = 'work-photos'
-        and name = 'fixture/admin.jpg'
-      returning id
-    )
-    select count(*)::integer from removed
-  ),
+  pg_temp.affected_rows($command$
+    delete from storage.objects
+    where bucket_id = 'work-photos'
+      and name = 'fixture/admin.jpg'
+  $command$),
   0,
   'mechanic cannot delete a photo file'
 );
