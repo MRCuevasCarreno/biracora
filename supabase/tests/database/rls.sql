@@ -15,6 +15,19 @@ exception
 end;
 $$;
 
+create function pg_temp.violates_check(p_sql text)
+returns boolean
+language plpgsql
+as $$
+begin
+  execute p_sql;
+  return false;
+exception
+  when check_violation then
+    return true;
+end;
+$$;
+
 create function pg_temp.affected_rows(p_sql text)
 returns integer
 language plpgsql
@@ -119,6 +132,114 @@ values
     100,
     '00000000-0000-0000-0000-000000000001'
   );
+
+select is(
+  (select file_size_limit from storage.buckets where id = 'work-photos'),
+  10485760::bigint,
+  'photo bucket enforces a 10 MiB upload limit'
+);
+select is(
+  (select allowed_mime_types from storage.buckets where id = 'work-photos'),
+  array['image/jpeg', 'image/png', 'image/webp']::text[],
+  'photo bucket allows only JPEG, PNG, and WebP'
+);
+
+insert into public.job_photos (
+  job_id, storage_path, file_name, mime_type, file_size_bytes, uploaded_by
+)
+values
+  (
+    '10000000-0000-0000-0000-000000000001',
+    'fixture/policy-min.jpg',
+    'policy-min.jpg',
+    'image/jpeg',
+    1,
+    '00000000-0000-0000-0000-000000000002'
+  ),
+  (
+    '10000000-0000-0000-0000-000000000001',
+    'fixture/policy-max.png',
+    'policy-max.png',
+    'image/png',
+    10485760,
+    '00000000-0000-0000-0000-000000000002'
+  ),
+  (
+    '10000000-0000-0000-0000-000000000001',
+    'fixture/policy-webp.webp',
+    'policy-webp.webp',
+    'image/webp',
+    100,
+    '00000000-0000-0000-0000-000000000002'
+  );
+select is(
+  (
+    select count(*)::integer
+    from public.job_photos
+    where storage_path in (
+      'fixture/policy-min.jpg',
+      'fixture/policy-max.png',
+      'fixture/policy-webp.webp'
+    )
+  ),
+  3,
+  'photo metadata accepts allowed types and inclusive size boundaries'
+);
+delete from public.job_photos
+where storage_path in (
+  'fixture/policy-min.jpg',
+  'fixture/policy-max.png',
+  'fixture/policy-webp.webp'
+);
+
+select ok(
+  pg_temp.violates_check($command$
+    insert into public.job_photos (
+      job_id, storage_path, file_name, mime_type, file_size_bytes, uploaded_by
+    )
+    values (
+      '10000000-0000-0000-0000-000000000001',
+      'fixture/policy-heic.heic',
+      'policy-heic.heic',
+      'image/heic',
+      100,
+      '00000000-0000-0000-0000-000000000002'
+    )
+  $command$),
+  'photo metadata rejects HEIC'
+);
+select ok(
+  pg_temp.violates_check($command$
+    insert into public.job_photos (
+      job_id, storage_path, file_name, mime_type, file_size_bytes, uploaded_by
+    )
+    values (
+      '10000000-0000-0000-0000-000000000001',
+      'fixture/policy-empty.jpg',
+      'policy-empty.jpg',
+      'image/jpeg',
+      0,
+      '00000000-0000-0000-0000-000000000002'
+    )
+  $command$),
+  'photo metadata rejects empty files'
+);
+select ok(
+  pg_temp.violates_check($command$
+    insert into public.job_photos (
+      job_id, storage_path, file_name, mime_type, file_size_bytes, uploaded_by
+    )
+    values (
+      '10000000-0000-0000-0000-000000000001',
+      'fixture/policy-too-large.jpg',
+      'policy-too-large.jpg',
+      'image/jpeg',
+      10485761,
+      '00000000-0000-0000-0000-000000000002'
+    )
+  $command$),
+  'photo metadata rejects files over 10 MiB'
+);
 
 insert into storage.objects (bucket_id, name)
 values
