@@ -44,7 +44,30 @@ La página no llama `google.script.run`, no usa `fetch` para acceder a servicios
 
 ## Esquema y pruebas de seguridad (solo local, sin desplegar)
 
-La migración define `profiles` ligado a `auth.users`, `jobs` con autoría y `job_photos` con metadatos/ruta de almacenamiento. Un trigger crea cada perfil como `MECHANIC`, sin confiar en metadatos del usuario. La migración no concede a clientes permisos para insertar/cambiar IDs, autoría o roles; la política de rol no permite escrituras desde el cliente. La asignación operativa de administradores aún requiere un proceso confiable que no está definido ni implementado.
+La migración define `profiles` ligado a `auth.users`, `jobs` con autoría y `job_photos` con metadatos/ruta de almacenamiento. Un trigger crea cada perfil como `MECHANIC`, sin confiar en metadatos del usuario. La migración no concede a clientes permisos para insertar/cambiar IDs, autoría o roles; la política de rol no permite escrituras desde el cliente.
+
+### Asignación inicial de ADMIN (procedimiento elegido; pendiente)
+
+Para este prototipo se elige una única asignación inicial y manual: Matías será el único ADMIN. No se construirá un flujo recurrente de administración desde un backend. Esto no crea una cuenta ni asigna el rol ahora: no hay proyecto remoto ni identidad de Supabase que se pueda verificar. El nombre “Matías” por sí solo no identifica de forma segura una cuenta; antes de la operación habrá que comprobar la identidad autenticada y su UUID exacto.
+
+Cuando exista un proyecto real y una persona operadora autorizada pueda acceder a su canal administrativo confiable:
+
+1. Matías crea y verifica su propia cuenta de Supabase Auth por el proceso normal. No compartir contraseñas ni usar metadatos de Auth para otorgar el rol.
+2. La persona operadora inicia sesión en el panel administrativo del proyecto correcto y confirma que no haya otro perfil `ADMIN`. Identifica el perfil de Matías mediante la cuenta verificada y comprueba su UUID y rol actual. Si hay cero o más de una coincidencia, o ya existe otro `ADMIN`, se detiene y resuelve la identidad/situación antes de cambiar nada.
+3. En el SQL Editor del proyecto correcto, la persona operadora ejecuta una sola actualización reemplazando el marcador por el UUID que verificó. El UUID debe coincidir con Matías; no se debe buscar ni asignar por nombre:
+
+   ```sql
+   update public.profiles
+   set role = 'ADMIN'
+   where id = '<UUID_VERIFICADO_DE_MATIAS>'::uuid
+     and role = 'MECHANIC'
+   returning id, role;
+   ```
+
+   Solo se continúa si la consulta devuelve exactamente el UUID confirmado y el rol `ADMIN`. Si no devuelve una fila, se detiene y se investiga; no se amplía el filtro ni se repite a ciegas.
+4. La persona operadora verifica que ese perfil sea el único `ADMIN` y registra en el registro operativo quién hizo el cambio, cuándo, el proyecto y el UUID verificado. No registra contraseñas, tokens ni claves. Cualquier corrección o cambio posterior de rol requiere de nuevo una operación administrativa autorizada.
+
+Este procedimiento es una guía para una futura operación, no una migración ni una consulta ejecutada. Nunca se debe efectuar desde el cliente, el selector visual, ni con una clave privilegiada en el navegador. No demuestra que el sistema esté listo para producción.
 
 Las políticas RLS cubren llamadas directas a las tablas y a `storage.objects`: ambos roles pueden leer todos los trabajos visibles y agregar metadatos/fotos; mecánicos solo actualizan trabajos propios; solo ADMIN puede borrar trabajos, metadatos y archivos. El bucket `work-photos` se declara privado en la migración. El archivo debe tener una fila de metadatos antes de poder cargarse; la lectura requiere metadatos asociados. El borrado de un trabajo elimina metadatos en cascada, no los objetos de Storage: antes de borrar, un futuro cliente debe coordinar la limpieza de archivos. ADMIN puede borrar objetos huérfanos. No se configuran aquí tipos/tamaños máximos, carga de archivos, enlaces firmados ni un proceso administrativo.
 
