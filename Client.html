@@ -1,65 +1,229 @@
 (() => {
   'use strict';
 
-  const demoJobs = [
-    {
-      id: 'DEMO-003',
-      plate: 'DE-MO-03',
-      date: '2026-10-12',
-      owner: 'Cliente ficticio 03',
-      phone: '+56 9 0000 0003',
-      email: 'cliente03@example.invalid',
-      vehicle: 'Marca y modelo ficticios',
-      chassis: 'CHASIS-DEMO-0003',
-      mileage: 54321,
-      creator: 'Marco · Mecánico demo',
-      creatorId: 'demo-marco',
-      work: 'Revisión preventiva ficticia.\nSe verificó el sistema de frenos y se realizó una inspección visual general.',
-      supplies: 'Filtro de aceite (ejemplo)\nAceite de motor (ejemplo)',
-      notes: 'Registro de muestra. No corresponde a un vehículo ni a una persona real.',
-      photoCount: 0
-    },
-    {
-      id: 'DEMO-002',
-      plate: 'DE-MO-02',
-      date: '2026-08-03',
-      owner: 'Cliente ficticio 02',
-      phone: '',
-      email: '',
-      vehicle: 'Vehículo de demostración',
-      chassis: 'CHASIS-DEMO-0002',
-      mileage: 12000,
-      creator: 'Matías · Admin demo',
-      creatorId: 'demo-matias',
-      work: 'Trabajo de ejemplo: cambio de aceite y revisión de niveles.',
-      supplies: 'Aceite y filtro (elementos ficticios)',
-      notes: 'Datos inventados exclusivamente para mostrar el diseño.',
-      photoCount: 2
-    },
-    {
-      id: 'DEMO-001',
-      plate: 'DE-MO-01',
-      date: '2026-02-24',
-      owner: 'Cliente ficticio 01',
-      phone: '',
-      email: 'cliente01@example.invalid',
-      vehicle: 'Auto de prueba',
-      chassis: 'CHASIS-DEMO-0001',
-      mileage: 0,
-      creator: 'Marco · Mecánico demo',
-      creatorId: 'demo-marco',
-      work: 'Diagnóstico demostrativo sin datos de un trabajo real.',
-      supplies: 'Sin insumos en este ejemplo',
-      notes: 'Ejemplo ficticio; no usar como antecedente de mantenimiento.',
-      photoCount: 1
-    }
+  const motorcycle = {
+    plate: 'LZ233',
+    owner: 'Matias Cuevas',
+    phone: '+569 900 91 888',
+    vehicle: 'BMW R1200GS (2005)'
+  };
+  const csvHistory = [
+    ["30/11/2020","diciembre 2020","75.000","Compra de Motocicleta","","",""],
+    ["7/12/2020","diciembre 2020","76.000","Cambio de Aceite de Motor","Matias Cuevas","$17.000",""],
+    ["7/12/2020","diciembre 2020","76.000","3 bujias/ 1 iridiuum 2 normales","Matias Cuevas","$21.350","2 Bujias Denso / 1 NGK"],
+    ["1/2/2021","febrero 2021","77.900","4 Bujias NGK 2 Electrodo (Originales)","Matias Cuevas","$25.000",""],
+    ["1/3/2021","marzo 2021","78.000","Cambio Liquido de Frenos\nMantenci\u00f3n deposito de Frenos\nCambio Liquido de Embrague\nMantenci\u00f3n Deposito de Embrague\nCambio de Pastillas delanteras\nCambio de Pasillas Traseras\nCambio Liquido Corona\nCambio fuelle cardan\nCambio fuelle corona\nReemplazo de pernos de parabrisa\nAjuste ampolleta trasera Foco","Pelao Cifuentes","$665.000",""],
+    ["8/3/2021","marzo 2021","78.000","Cambio ret\u00e9n exterior corona\nCambio ret\u00e9n interior corona","Pelao Cifuentes","$420.000",""],
+    ["16/4/2021","abril 2021","78.600","Cambio de 2 bobinas principales (las que van embutidas en el cilindro)","Pelao Cifuentes","$432.000",""],
+    ["13/7/2021","julio 2021","80.100","Cambio de Bateria","Matias Cuevas","$82.900","Bateria Motobatt MBYZ16H"],
+    ["8/10/2021","octubre 2021","82.300","Cambio de filtro de Aire","Matias Cuevas","$83.610","filtro de aire KyN"],
+    ["3/11/0201","noviembre 0201","83.500","cambio de aceite 20w50 y filtro de aceite","Matias Cuevas","$32.000",""],
+    ["4/12/2021","diciembre 2021","84.488","cambio de aceite de corona, aceite de caja, switch de freno delantero y switch de embrague","Pelao Cifuentes","$424.164",""],
+    ["7/2/2022","febrero 2022","88.200","cambio de aceite de corona, sensor de cambios","Pelao Cifuentes","$0",""],
+    ["9/3/2023","marzo 2023","88.500","Ajuste de Valvulas","Pelao Cifuentes","$120.000",""],
+    ["27/3/2022","marzo 2022","89.500","Cambio de Neumatico Delantero","Matias Cuevas","$60.000","metzeler karoo 3 120/70-19"],
+    ["5/6/2022","junio 2022","","Tapas de ampolletas para focos","Matias Cuevas","$10.000","se quitaron a los pocos kms, se ca\u00edan de su posici\u00f3n"],
+    ["29/7/2022","julio 2022","93.300","Cambio foco trasero por uno led","Matias Cuevas","$45.000","cambio de foco, debido a rotura de soquete de ampolleta, provocando que se fundan las ampolletas"],
+    ["29/7/2022","julio 2022","93.300","Cambio focos delantero por LED (posici\u00f3n, baja, alta)","Matias Cuevas","$16.000",""],
+    ["30/7/2022","julio 2022","93.320","Compra de protector de foco","Matias Cuevas","$20.000",""],
+    ["19/9/2022","septiembre 2022","94.000","cambio de aceite de motor y filtro de aceite","Matias Cuevas","$35.000",""],
+    ["05/02/2023","febrero 2023","99.000","Cambio de Bujias y correa de Alternador","Matias Cuevas","$32.000","Bujias NGK"],
+    ["20/04/2023","abril 2023","100.900","Cambio de Neumatico Trasero","Motoss","$114.000","Neumatico Avon TrailRider"],
+    ["09/05/2023","mayo 2023","101.300","Mantenci\u00f3n y Limpieza Admisi\u00f3n, Filtro de Aire","Matias Cuevas","$0","Limpieza y mantenci\u00f3n \nIntake de Admisi\u00f3n y \nmantenci\u00f3n de Filtro de Aire,\n Instalaci\u00f3n DB Killer Escape"],
+    ["08/08/2023","agosto 2023","103.700","Cambio Neumatico Delantero, y balanceo","Moto Impacto","$170.000","Neumatico Heidenau K76"],
+    ["21/09/2023","septiembre 2023","105.000","cambio de aceite de motor","Matias Cuevas","$35.000",""],
+    ["24/11/2023","noviembre 2023","107.000","Compra de Pastillas de Freno Traseras, Filtro de Aceite","Matias Cuevas","$42.250","pastillas de freno Brenta, sintetizadas"],
+    ["06/12/2023","diciembre 2023","108.000","Cambio de Embrague, reten Eje","Pelao Cifuentes","$780.000","Diisco de Embrague y ret\u00e9n original BMW"],
+    ["06/12/2023","diciembre 2023","108.000","Cambio Reten Eje compensador","Pelao Cifuentes","$90.000","Para saldar fuga de aceite por la tapa de correa alternador"],
+    ["06/12/2023","diciembre 2023","108.000","Cambio Tensor Correa Distribuci\u00f3n Cilindro Derecho (perspectiva arriba de la moto)","Pelao Cifuentes","$140.000","Para resolver sonido similar a valvulas cuando se acelera la moto"],
+    ["06/12/2023","diciembre 2023","108.000","Instalaci\u00f3n y compra de pernos  originales que afirman el subchasis","Pelao Cifuentes","$20.000","Se compraron al Jhonny Motos ya que no estaban, cuando se abrio la moto para cambiar embrague"],
+    ["07/12/2023","diciembre 2023","108.000","Reparaci\u00f3n Hilo Motor Soporte Defensas Inferiores","Lalo Torno","$15.000",""],
+    ["07/12/2023","diciembre 2023","108.000","Cambio de Pastillas Traseras","Pelao Cifuentes","$0","El precio de las pastillas aparece anteriormente (Fila 37) un total de $32000"],
+    ["07/12/2023","diciembre 2023","108.000","Se observan Grietas en fuelle de corona, y corte en el fuelle del basculante","Pelao Cifuentes","$0","La goma se ve reseca, provocando cortes en el fuelle que va en la caja de cambios, en la de la corona solo se ve reseca y con grietas. Se deduce que es por desgaste de material."],
+    ["14/12/2023","diciembre 2023","108.600","Se cambia fuelle de caja de cambios","Pelao Cifuentes","$350.000","300.000 fuelle original bmw + 50,000 mano de obra"],
+    ["06/07/2024","julio 2024","111.000","Compra y cambio de Pu\u00f1o derecho","Pelao Cifuentes","$198.000",""],
+    ["06/07/2024","julio 2024","111.000","Liq de frenos","Pelao Cifuentes","$60.000","Relleno liq. de frenos"],
+    ["01/08/2024","agosto 2024","","Compra Aceite Motor","Matias Cuevas","$20.000",""],
+    ["","","113000,00","cambio reten cigue\u00f1al","Pelao Cifuentes","$140.000",""],
+    ["","","113000,00","cambio golilla tensor de distribucion","Pelao Cifuentes","$60.000",""],
+    ["","","113000,00","revisar foco trasero","Pelao Cifuentes","$0",""],
+    ["","","113000,00","cambiar empaquetadura cilindros","Pelao Cifuentes","$60.000",""],
+    ["","","113000,00","Cambio liquido Corona","","",""],
+    ["","","","cambio fuelles trasero","","",""],
+    ["","","114000,00","cambio rodamientos rueda delantera","Pelao Cifuentes","$80.000",""],
+    ["","","","abono llanta delantera de rayos","Pelao Cifuentes","$50.000","pendiente 150.000 restantes"],
+    ["30/08/2024","agosto 2024","115000,00","renovaci\u00f3n instalaci\u00f3n el\u00e9ctrica de accesorios","Pelao Cifuentes","$140.000","instalalacion neblineros"],
+    ["30/11/2024","noviembre 2024","117000,00","renovaci\u00f3n el\u00e9ctrica, nuevos neblineros , toma USB e instalaci\u00f3n de Bocina de Aire","Pelao Cifuentes","$100.000",""],
+    ["02/04/2025","abril 2025","118000,00","limpieza filtro de aire","Matias Cuevas","$0","uso de limpiadores KyN"],
+    ["28/05/2025","mayo 2025","123000,00","Bomba de Bencina","Pelao Cifuentes","$120.000","cambio bomba de bencina marca Bosch"],
+    ["","","","compra cuerpo de aceleraci\u00f3n izquierdo","Pelao Cifuentes","$120.000",""],
+    ["","","","Mano de obra cambio bomba inyectora,  cuerpo aceleraci\u00f3n, cambio de amortiguador, limpieza inyectores","Pelao Cifuentes","$170.000",""],
+    ["","","","","Gravity","$300.000","reparaci\u00f3n amortiguador trasero"],
+    ["02/04/2026","abril 2026","125000,00","cambio aceite corona","Pelao Cifuentes","$0","Aceite liqui Moly"],
   ];
+
+  function parseCsvDate(value) {
+    const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
+    if (!match) return '';
+    const [, dayText, monthText, yearText] = match;
+    const day = Number(dayText);
+    const month = Number(monthText);
+    const year = Number(yearText);
+    if (year < 1900) return '';
+    const parsedDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      parsedDate.getUTCFullYear() !== year ||
+      parsedDate.getUTCMonth() !== month - 1 ||
+      parsedDate.getUTCDate() !== day
+    ) return '';
+    return `${yearText}-${monthText.padStart(2, '0')}-${dayText.padStart(2, '0')}`;
+  }
+
+  function parseCsvMileage(value) {
+    const normalized = value.trim().replace(/\./g, '').replace(/,00$/, '');
+    if (!/^\d+$/.test(normalized)) return null;
+    const mileage = Number(normalized);
+    return Number.isSafeInteger(mileage) ? mileage : null;
+  }
+
+  function compareServiceRecords(a, b) {
+    if (!a.date && b.date) return 1;
+    if (a.date && !b.date) return -1;
+    return b.date.localeCompare(a.date) || a.csvRow - b.csvRow;
+  }
+
+  const suppliesByCsvRow = {
+    2: 'Aceite de motor; marca y cantidad no indicadas.',
+    3: '3 bujías: 1 de iridio y 2 normales. La nota menciona 2 Denso y 1 NGK.',
+    4: '4 bujías NGK de 2 electrodos (originales).',
+    5: 'Líquidos de frenos, embrague y corona; pastillas delanteras y traseras; fuelles de cardán y corona; pernos de parabrisas; ampolleta trasera.',
+    6: 'Retén exterior e interior de corona.',
+    7: '2 bobinas principales.',
+    8: 'Batería Motobatt MBYZ16H.',
+    9: 'Filtro de aire K&N.',
+    10: 'Aceite 20W-50 y filtro de aceite.',
+    11: 'Aceites de corona y caja; switch de freno delantero y switch de embrague.',
+    12: 'Aceite de corona y sensor de cambios.',
+    14: 'Neumático delantero Metzeler Karoo 3, 120/70-19.',
+    15: 'Tapas de ampolletas para los focos.',
+    16: 'Foco trasero LED.',
+    17: 'Focos delanteros LED de posición, baja y alta.',
+    18: 'Protector de foco.',
+    19: 'Aceite de motor y filtro de aceite.',
+    20: 'Bujías NGK y correa de alternador.',
+    21: 'Neumático trasero Avon TrailRider.',
+    22: 'DB Killer para escape.',
+    23: 'Neumático delantero Heidenau K76.',
+    24: 'Aceite de motor.',
+    25: 'Pastillas de freno traseras Brenta sintetizadas y filtro de aceite.',
+    26: 'Disco de embrague y retén original BMW.',
+    27: 'Retén de eje compensador.',
+    28: 'Tensor de correa de distribución del cilindro derecho.',
+    29: 'Pernos originales del subchasis.',
+    31: 'Pastillas de freno traseras (la nota indica que el precio se registró antes).',
+    33: 'Fuelle original BMW para caja de cambios.',
+    34: 'Puño derecho.',
+    35: 'Líquido de frenos.',
+    36: 'Aceite de motor.',
+    37: 'Retén de cigüeñal.',
+    38: 'Golilla del tensor de distribución.',
+    40: 'Empaquetaduras de cilindros.',
+    41: 'Líquido de corona.',
+    42: 'Fuelles traseros.',
+    43: 'Rodamientos de rueda delantera.',
+    44: 'Llanta delantera de rayos (abono; queda saldo pendiente según la nota).',
+    45: 'Neblineros/accesorios eléctricos.',
+    46: 'Neblineros, toma USB y bocina de aire.',
+    47: 'Limpiadores K&N para filtro de aire.',
+    48: 'Bomba de bencina Bosch.',
+    49: 'Cuerpo de aceleración izquierdo.',
+    52: 'Aceite de corona Liqui Moly.'
+  };
+  const summaryByCsvRow = {
+    5: 'Mantención de frenos, embrague, corona, fuelles y luz trasera',
+    6: 'Cambio de retenes de corona',
+    26: 'Cambio de embrague y retén de eje',
+    28: 'Cambio de tensor de distribución (cilindro derecho)',
+    29: 'Instalación de pernos del subchasis',
+    32: 'Inspección de fuelles de corona y basculante',
+    45: 'Renovación eléctrica de accesorios',
+    46: 'Renovación eléctrica, neblineros, USB y bocina',
+    50: 'Mano de obra en bomba, aceleración, amortiguador e inyectores',
+    51: 'Reparación de amortiguador trasero'
+  };
+  const workByCsvRow = {
+    51: 'Reparación de amortiguador trasero (clasificado desde la nota del CSV).'
+  };
+  const monthNumbers = {
+    enero: '01',
+    febrero: '02',
+    marzo: '03',
+    abril: '04',
+    mayo: '05',
+    junio: '06',
+    julio: '07',
+    agosto: '08',
+    septiembre: '09',
+    octubre: '10',
+    noviembre: '11',
+    diciembre: '12'
+  };
+
+  function summarizeWork(value) {
+    const lines = value.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return 'Descripción clasificada desde las observaciones';
+    if (lines.length > 1) return `${lines[0]} y ${lines.length - 1} tareas más`;
+    const summary = lines[0].replace(/\s+/g, ' ');
+    return summary.length > 82 ? `${summary.slice(0, 79).trimEnd()}…` : summary;
+  }
+
+  function monthDiffersFromDate(date, month) {
+    const match = /^([a-záéíóú]+)\s+(\d{4})$/i.exec(month);
+    if (!match) return false;
+    const monthNumber = monthNumbers[match[1].toLowerCase()];
+    return !date || !monthNumber || date.slice(0, 7) !== `${match[2]}-${monthNumber}`;
+  }
+
+  const serviceRecords = csvHistory.map((row, index) => {
+    const [sourceDate, month, sourceMileage, work, creator, cost, sourceNotes] = row;
+    const date = parseCsvDate(sourceDate);
+    const rowNumber = index + 1;
+    const fullWork = workByCsvRow[rowNumber] || work;
+    const observations = [
+      sourceNotes,
+      monthDiffersFromDate(date, month) && `Mes informado en CSV: ${month}`,
+      sourceDate && !date && `Fecha original no interpretada: ${sourceDate}`
+    ].filter(Boolean).join('\n');
+    return {
+      id: `LZ233-${String(rowNumber).padStart(3, '0')}`,
+      plate: motorcycle.plate,
+      date,
+      owner: motorcycle.owner,
+      phone: motorcycle.phone,
+      email: '',
+      vehicle: motorcycle.vehicle,
+      chassis: '',
+      mileage: parseCsvMileage(sourceMileage),
+      creator: creator || 'No indicado',
+      creatorId: 'csv-import',
+      summary: summaryByCsvRow[rowNumber] || summarizeWork(fullWork),
+      work: fullWork,
+      supplies: suppliesByCsvRow[rowNumber] || '',
+      notes: observations,
+      cost,
+      sourceMonth: month,
+      csvRow: rowNumber
+    };
+  }).sort(compareServiceRecords);
 
   const searchInput = document.getElementById('plate-search');
   const clearButton = document.getElementById('clear-search');
   const listElement = document.getElementById('jobs-list');
   const emptyState = document.getElementById('empty-state');
   const initialState = document.getElementById('initial-state');
+  const workspaceElement = document.querySelector('.workspace');
+  const vehicleView = document.getElementById('vehicle-view');
+  const historyList = document.getElementById('history-list');
   const detailView = document.getElementById('detail-view');
   const noSelection = document.getElementById('no-selection');
   const roleSelect = document.getElementById('demo-role');
@@ -67,10 +231,13 @@
   const profileAvatar = document.getElementById('profile-avatar');
   const jobDialog = document.getElementById('job-dialog');
   const jobForm = document.getElementById('job-form');
+  const historyPageSize = 10;
   let currentRole = 'ADMIN';
-  let selectedId = demoJobs[0].id;
+  let currentView = 'search';
+  let historyPage = 0;
+  let selectedServiceId = '';
   let editingJobId = null;
-  let nextDemoNumber = 4;
+  let nextDemoNumber = csvHistory.length + 1;
 
   function normalizePlate(value) {
     return String(value || '').toUpperCase().replace(/[\s-]/g, '');
@@ -82,8 +249,8 @@
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
 
-  function safeText(elementId, value) {
-    document.getElementById(elementId).textContent = value || 'Sin información';
+  function safeText(elementId, value, fallback = 'Sin información') {
+    document.getElementById(elementId).textContent = value || fallback;
   }
 
   function currentUserName() {
@@ -98,189 +265,245 @@
     return currentRole === 'ADMIN' || job.creatorId === currentUserId();
   }
 
-  function selectedJob() {
-    return demoJobs.find((job) => job.id === selectedId);
+  function selectedService() {
+    return serviceRecords.find((record) => record.id === selectedServiceId);
   }
 
-  function renderList() {
+  function renderSearch() {
+    currentView = 'search';
+    workspaceElement.classList.remove('page-focus');
     const query = normalizePlate(searchInput.value);
-    const results = demoJobs.filter((job) => {
-      return !query || normalizePlate(job.plate) === query;
-    });
+    const hasMatch = Boolean(query) && normalizePlate(motorcycle.plate).includes(query);
 
-    document.getElementById('job-count').textContent = String(demoJobs.length);
-    document.getElementById('results-label').textContent = query ? `${results.length} resultado${results.length === 1 ? '' : 's'}` : '';
+    document.getElementById('vehicle-count').textContent = String(hasMatch ? 1 : 0);
+    document.getElementById('results-label').textContent = query ? `${hasMatch ? 1 : 0} vehículo${hasMatch ? '' : 's'}` : '';
+    document.getElementById('history-total').textContent = String(serviceRecords.length);
     clearButton.hidden = !searchInput.value;
     listElement.replaceChildren();
 
-    results.forEach((job) => {
+    if (hasMatch) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = `job-item${job.id === selectedId ? ' selected' : ''}`;
-      button.setAttribute('aria-pressed', String(job.id === selectedId));
+      button.className = 'job-item';
       button.innerHTML = '<span class="job-item-top"><span class="job-plate"></span><span class="job-date"></span></span><span class="job-owner"></span><span class="job-vehicle"></span>';
-      button.querySelector('.job-plate').textContent = job.plate;
-      button.querySelector('.job-date').textContent = formatDate(job.date);
-      button.querySelector('.job-owner').textContent = job.owner;
-      button.querySelector('.job-vehicle').textContent = job.vehicle;
-      button.addEventListener('click', () => {
-        selectedId = job.id;
-        renderList();
-      });
+      button.querySelector('.job-plate').textContent = motorcycle.plate;
+      button.querySelector('.job-date').textContent = `${serviceRecords.length} servicios`;
+      button.querySelector('.job-owner').textContent = motorcycle.owner;
+      button.querySelector('.job-vehicle').textContent = motorcycle.vehicle;
+      button.addEventListener('click', showVehicleHistory);
       listElement.appendChild(button);
-    });
-
-    emptyState.hidden = results.length > 0 || !query;
-    initialState.hidden = Boolean(query) || results.length > 0;
-
-    const currentSelection = results.find((job) => job.id === selectedId);
-    if (currentSelection) {
-      renderDetail(currentSelection);
-    } else if (results.length) {
-      selectedId = results[0].id;
-      renderDetail(results[0]);
-    } else {
-      detailView.hidden = true;
-      noSelection.hidden = false;
     }
+
+    emptyState.hidden = hasMatch || !query;
+    initialState.hidden = Boolean(query) || hasMatch;
+    vehicleView.hidden = true;
+    detailView.hidden = true;
+    noSelection.hidden = false;
   }
 
-  function renderDetail(job) {
+  function showVehicleHistory(resetPage = true) {
+    currentView = 'history';
+    if (resetPage) historyPage = 0;
+    workspaceElement.classList.add('page-focus');
+    vehicleView.hidden = false;
+    detailView.hidden = true;
+    noSelection.hidden = true;
+    safeText('vehicle-contact-name', motorcycle.owner);
+    safeText('vehicle-contact-phone', motorcycle.phone);
+    safeText('vehicle-plate', motorcycle.plate);
+    safeText('vehicle-name', motorcycle.vehicle);
+    safeText('vehicle-history-count', `${serviceRecords.length} servicios`);
+    safeText('vehicle-plate-banner', motorcycle.plate);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const pageCount = Math.max(1, Math.ceil(serviceRecords.length / historyPageSize));
+    historyPage = Math.min(historyPage, pageCount - 1);
+    document.getElementById('history-total').textContent = String(serviceRecords.length);
+    const firstIndex = historyPage * historyPageSize;
+    const pageRecords = serviceRecords.slice(firstIndex, firstIndex + historyPageSize);
+    historyList.replaceChildren();
+
+    pageRecords.forEach((record) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'history-item';
+      button.setAttribute('aria-label', `${formatDate(record.date)}, ${record.summary}, ${record.creator}`);
+
+      const metadata = document.createElement('span');
+      metadata.className = 'history-item-meta';
+      const date = document.createElement('strong');
+      date.textContent = formatDate(record.date);
+      const mileage = document.createElement('span');
+      mileage.textContent = record.mileage === null ? 'Kilometraje no indicado' : `${record.mileage.toLocaleString('es-CL')} km`;
+      metadata.append(date, mileage);
+
+      const summary = document.createElement('span');
+      summary.className = 'history-item-summary';
+      summary.textContent = record.summary;
+      const mechanic = document.createElement('span');
+      mechanic.className = 'history-item-mechanic';
+      mechanic.textContent = `Realizado por: ${record.creator}`;
+
+      button.append(metadata, summary, mechanic);
+      button.addEventListener('click', () => showServiceDetail(record));
+      historyList.appendChild(button);
+    });
+
+    document.getElementById('history-page-label').textContent = `Página ${historyPage + 1} de ${pageCount}`;
+    document.getElementById('history-prev').disabled = historyPage === 0;
+    document.getElementById('history-next').disabled = historyPage >= pageCount - 1;
+  }
+
+  function showServiceDetail(record) {
+    currentView = 'detail';
+    selectedServiceId = record.id;
+    workspaceElement.classList.add('page-focus');
+    vehicleView.hidden = true;
     detailView.hidden = false;
     noSelection.hidden = true;
-    safeText('detail-plate-small', job.plate);
-    safeText('detail-plate', job.plate);
-    safeText('order-number', `· ${job.id}`);
-    safeText('owner-name', job.owner);
-    const contact = [job.phone, job.email].filter(Boolean).join(' · ');
-    safeText('owner-contact', contact || 'Contacto no indicado');
-    safeText('work-date', formatDate(job.date));
-    safeText('vehicle-name', job.vehicle);
-    safeText('chassis-number', job.chassis);
-    safeText('mileage', `${Number(job.mileage).toLocaleString('es-CL')} km`);
-    safeText('owner-inline', job.owner);
-    safeText('creator', job.creator);
-    safeText('work-description', job.work);
-    safeText('supplies', job.supplies);
-    safeText('observations', job.notes);
-    document.getElementById('photo-count').textContent = String(job.photoCount);
+
+    safeText('service-id', record.id);
+    safeText('service-contact-name', record.owner);
+    safeText('service-contact-phone', record.phone);
+    safeText('service-date', formatDate(record.date));
+    safeText('service-plate', record.plate);
+    safeText('service-vehicle', record.vehicle);
+    safeText('service-mileage', record.mileage === null ? '' : `${record.mileage.toLocaleString('es-CL')} km`);
+    safeText('service-mechanic', record.creator);
+    safeText('service-cost', record.cost);
+    safeText('service-summary', record.summary);
+    safeText('service-work', record.work);
+    safeText('service-supplies', record.supplies, 'No se identificaron insumos explícitos en el CSV.');
+    safeText('service-observations', record.notes, 'Sin observaciones en el CSV.');
 
     const editButton = document.getElementById('edit-job-button');
-    editButton.hidden = !canEdit(job);
-    editButton.title = canEdit(job) ? 'Editar este ejemplo ficticio' : 'En esta simulación, el mecánico solo edita trabajos propios';
+    editButton.hidden = !canEdit(record);
+    editButton.title = canEdit(record) ? 'Editar este registro local' : 'En esta simulación, el mecánico solo edita trabajos propios';
     document.getElementById('delete-job-button').hidden = currentRole !== 'ADMIN';
-
-    const gallery = document.getElementById('photo-gallery');
-    gallery.replaceChildren();
-    for (let index = 0; index < job.photoCount; index += 1) {
-      const tile = document.createElement('div');
-      tile.className = 'photo-tile';
-      const placeholder = document.createElement('span');
-      placeholder.className = 'photo-placeholder';
-      placeholder.textContent = `Ejemplo ${index + 1}`;
-      tile.appendChild(placeholder);
-      if (currentRole === 'ADMIN') {
-        const removeButton = document.createElement('button');
-        removeButton.className = 'photo-remove';
-        removeButton.type = 'button';
-        removeButton.textContent = 'Quitar ejemplo';
-        removeButton.setAttribute('aria-label', `Quitar foto ficticia ${index + 1}`);
-        removeButton.addEventListener('click', () => {
-          job.photoCount = Math.max(0, job.photoCount - 1);
-          renderDetail(job);
-        });
-        tile.appendChild(removeButton);
-      }
-      gallery.appendChild(tile);
-    }
-    if (job.photoCount === 0) {
-      const placeholder = document.createElement('span');
-      placeholder.className = 'photo-placeholder';
-      placeholder.textContent = 'Sin fotos';
-      gallery.appendChild(placeholder);
-    }
   }
 
   function openJobDialog(job) {
     editingJobId = job ? job.id : null;
     jobForm.reset();
-    document.getElementById('job-dialog-title').textContent = job ? 'Editar trabajo de ejemplo' : 'Nuevo trabajo de ejemplo';
-    jobForm.elements.namedItem('date').value = job ? job.date : '2026-11-19';
-    jobForm.elements.namedItem('mileage').value = job ? job.mileage : 0;
+    document.getElementById('job-dialog-title').textContent = job ? 'Editar servicio local' : 'Nuevo servicio local';
+    const dateField = jobForm.elements.namedItem('date');
+    const mileageField = jobForm.elements.namedItem('mileage');
+    dateField.required = !job || Boolean(job.date);
+    mileageField.required = Boolean(job && job.mileage !== null);
+    dateField.value = job ? job.date : '';
+    mileageField.value = job ? (job.mileage === null ? '' : job.mileage) : '';
     if (job) {
-      ['plate', 'owner', 'phone', 'email', 'vehicle', 'chassis', 'work', 'supplies', 'notes'].forEach((field) => {
+      ['plate', 'owner', 'phone', 'vehicle', 'work', 'supplies', 'notes', 'cost'].forEach((field) => {
         jobForm.elements.namedItem(field).value = job[field] || '';
       });
     } else {
-      jobForm.elements.namedItem('plate').value = 'DE-MO-04';
-      jobForm.elements.namedItem('owner').value = 'Cliente ficticio 04';
-      jobForm.elements.namedItem('vehicle').value = 'Vehículo de demostración';
-      jobForm.elements.namedItem('chassis').value = 'CHASIS-DEMO-0004';
-      jobForm.elements.namedItem('work').value = 'Trabajo ficticio para revisar el formulario.';
-      jobForm.elements.namedItem('supplies').value = 'Insumos de ejemplo';
-      jobForm.elements.namedItem('notes').value = 'No corresponde a un cliente ni vehículo real.';
+      jobForm.elements.namedItem('plate').value = motorcycle.plate;
+      jobForm.elements.namedItem('owner').value = motorcycle.owner;
+      jobForm.elements.namedItem('phone').value = motorcycle.phone;
+      jobForm.elements.namedItem('vehicle').value = motorcycle.vehicle;
+      jobForm.elements.namedItem('work').value = '';
+      jobForm.elements.namedItem('supplies').value = '';
+      jobForm.elements.namedItem('notes').value = '';
+      jobForm.elements.namedItem('cost').value = '';
     }
     jobDialog.showModal();
+  }
+
+  function refreshCurrentView() {
+    if (currentView === 'search') {
+      renderSearch();
+      return;
+    }
+    if (currentView === 'history') {
+      vehicleView.hidden = false;
+      detailView.hidden = true;
+      noSelection.hidden = true;
+      renderHistory();
+      return;
+    }
+    const record = selectedService();
+    if (record) showServiceDetail(record);
+    else showVehicleHistory(false);
   }
 
   roleSelect.addEventListener('change', () => {
     currentRole = roleSelect.value;
     profileName.textContent = currentRole === 'ADMIN' ? 'Matías · Admin' : 'Marco · Mecánico';
     profileAvatar.textContent = currentRole === 'ADMIN' ? 'MT' : 'MR';
-    renderList();
+    refreshCurrentView();
   });
-  searchInput.addEventListener('input', renderList);
+  searchInput.addEventListener('input', renderSearch);
   clearButton.addEventListener('click', () => {
     searchInput.value = '';
     searchInput.focus();
-    renderList();
+    renderSearch();
   });
   document.getElementById('new-job-button').addEventListener('click', () => openJobDialog(null));
+  document.getElementById('new-service-button').addEventListener('click', () => openJobDialog(null));
+  document.getElementById('back-to-search').addEventListener('click', renderSearch);
+  document.getElementById('back-to-history').addEventListener('click', () => showVehicleHistory(false));
+  document.getElementById('history-prev').addEventListener('click', () => {
+    historyPage = Math.max(0, historyPage - 1);
+    renderHistory();
+  });
+  document.getElementById('history-next').addEventListener('click', () => {
+    historyPage += 1;
+    renderHistory();
+  });
   document.getElementById('edit-job-button').addEventListener('click', () => {
-    const job = selectedJob();
+    const job = selectedService();
     if (job && canEdit(job)) openJobDialog(job);
   });
   document.getElementById('delete-job-button').addEventListener('click', () => {
-    const job = selectedJob();
+    const job = selectedService();
     if (currentRole !== 'ADMIN' || !job) return;
-    if (!window.confirm(`¿Quitar el ejemplo ficticio ${job.plate} de esta vista?`)) return;
-    demoJobs.splice(demoJobs.findIndex((entry) => entry.id === job.id), 1);
-    selectedId = demoJobs.length ? demoJobs[0].id : '';
-    renderList();
-  });
-  document.getElementById('add-demo-photo-button').addEventListener('click', () => {
-    const job = selectedJob();
-    if (!job) return;
-    job.photoCount += 1;
-    renderDetail(job);
+    if (!window.confirm(`¿Quitar el registro local ${job.id} de esta vista?`)) return;
+    serviceRecords.splice(serviceRecords.findIndex((entry) => entry.id === job.id), 1);
+    selectedServiceId = '';
+    showVehicleHistory(false);
   });
   document.getElementById('close-job-dialog').addEventListener('click', () => jobDialog.close());
   document.getElementById('cancel-job-dialog').addEventListener('click', () => jobDialog.close());
   jobForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(jobForm).entries());
-    const job = editingJobId ? demoJobs.find((entry) => entry.id === editingJobId) : null;
+    const job = editingJobId ? selectedService() : null;
+    const mileage = values.mileage === '' ? null : Number(values.mileage);
     if (job && !canEdit(job)) return;
     if (job) {
-      Object.assign(job, values, { mileage: Number(values.mileage) });
+      Object.assign(job, values, { mileage, summary: summarizeWork(values.work) });
     } else {
-      const nextId = `DEMO-${String(nextDemoNumber).padStart(3, '0')}`;
+      const nextId = `${motorcycle.plate}-${String(nextDemoNumber).padStart(3, '0')}`;
       nextDemoNumber += 1;
-      demoJobs.unshift({
-        ...values,
+      const newRecord = {
         id: nextId,
-        mileage: Number(values.mileage),
+        plate: motorcycle.plate,
+        date: values.date,
+        owner: values.owner,
+        phone: values.phone,
+        email: '',
+        vehicle: values.vehicle,
+        chassis: '',
+        mileage,
         creator: currentUserName(),
         creatorId: currentUserId(),
-        photoCount: 0
-      });
-      selectedId = nextId;
-      searchInput.value = '';
+        summary: summarizeWork(values.work),
+        work: values.work,
+        supplies: values.supplies,
+        notes: values.notes,
+        cost: values.cost,
+        csvRow: csvHistory.length + nextDemoNumber
+      };
+      serviceRecords.push(newRecord);
+      serviceRecords.sort(compareServiceRecords);
+      showServiceDetail(newRecord);
     }
     jobDialog.close();
-    renderList();
+    if (job) showServiceDetail(job);
   });
   document.getElementById('print-button').addEventListener('click', () => window.print());
 
-  renderList();
+  renderSearch();
 })();

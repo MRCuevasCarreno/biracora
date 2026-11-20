@@ -15,7 +15,7 @@
         </span>
       </a>
       <div class="header-right">
-        <span class="demo-pill"><span class="status-dot"></span> DEMO · SOLO DATOS FICTICIOS</span>
+        <span class="demo-pill"><span class="status-dot"></span> PRUEBA LOCAL · HISTORIAL IMPORTADO</span>
         <label class="demo-user" for="demo-role">
           <span class="profile-avatar" id="profile-avatar">MT</span>
           <span class="demo-user-copy"><strong id="profile-name">Matías · Admin</strong><small>Simulación visual de rol</small></span>
@@ -31,51 +31,116 @@
       <section class="security-banner" role="status">
         <span class="banner-icon" aria-hidden="true">!</span>
         <div>
-          <strong>Vista de propuesta: no se conecta a Supabase, Sheets ni Drive.</strong>
-          <p>Los botones y el selector solo simulan permisos en este navegador. Usa únicamente información ficticia; los cambios se pierden al recargar.</p>
+          <strong>Vista local: no se conecta a Supabase, Sheets ni Drive.</strong>
+          <p>Incluye el historial que compartiste para tu BMW R1200GS. Está embebido en Client.html; no hagas commit/push ni compartas este proyecto sin retirar esos datos. Los cambios de la maqueta se pierden al recargar.</p>
         </div>
       </section>
 
       <div class="workspace">
-        <aside class="jobs-panel app-chrome" aria-label="Búsqueda y lista de trabajos">
+        <aside class="jobs-panel app-chrome" aria-label="Búsqueda de vehículos">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">TALLER MECÁNICO</p>
-              <h1>Trabajos</h1>
+              <h1>Vehículos</h1>
             </div>
-            <span class="count-badge" id="job-count">0</span>
+            <span class="count-badge" id="vehicle-count">0</span>
           </div>
 
           <label class="search-label" for="plate-search">Buscar por patente</label>
           <div class="search-box">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.5 4.5"></path></svg>
-            <input id="plate-search" type="search" placeholder="Ej. AB-CD-12" autocomplete="off">
+            <input id="plate-search" type="search" placeholder="Ej. LZ233" autocomplete="off">
             <button id="clear-search" class="clear-search" type="button" aria-label="Limpiar búsqueda" hidden>×</button>
           </div>
-          <p class="hint">Coincidencia exacta. Ignora mayúsculas, espacios y guiones.</p>
+          <p class="hint">Escribe parte de la patente; ignora mayúsculas, espacios y guiones.</p>
 
           <button id="new-job-button" class="button button-primary new-job" type="button">
-            <span aria-hidden="true">＋</span> Nuevo trabajo
+            <span aria-hidden="true">＋</span> Nuevo servicio
           </button>
-          <p class="disabled-note">Simulación local · sin guardar ni enviar datos.</p>
+          <p class="disabled-note">Prueba local · sin guardar ni enviar datos.</p>
 
           <div class="list-heading">
-            <span>RECIENTES</span>
+            <span>VEHÍCULOS</span>
             <span id="results-label"></span>
           </div>
           <div id="jobs-list" class="jobs-list" aria-live="polite"></div>
           <p id="empty-state" class="empty-state" hidden>
             <span class="empty-icon" aria-hidden="true">⌕</span>
-            <strong>No encontramos esa patente</strong>
-            <span>Revisa los caracteres o prueba sin espacios ni guiones.</span>
+            <strong>No encontramos coincidencias</strong>
+            <span>Prueba con otros caracteres de la patente.</span>
           </p>
-          <p id="initial-state" class="initial-state" hidden>Ingresa una patente para buscar entre los ejemplos ficticios.</p>
+          <p id="initial-state" class="initial-state" hidden>Busca una patente para ver el vehículo.</p>
         </aside>
 
-        <section class="detail-panel" aria-label="Detalle y orden de trabajo">
-          <div id="detail-view">
+        <section class="detail-panel" aria-label="Historial y detalle del servicio">
+          <div id="no-selection" class="no-selection app-chrome">
+            <span class="no-selection-icon" aria-hidden="true">⌕</span>
+            <h2>Busca una patente</h2>
+            <p>Escribe LZ233 para encontrar el vehículo y abrir su historial.</p>
+          </div>
+
+          <section id="vehicle-view" hidden>
             <div class="detail-toolbar app-chrome">
-              <div class="breadcrumb"><span>Trabajos</span><span class="crumb-divider">/</span><strong id="detail-plate-small">—</strong></div>
+              <div class="breadcrumb"><span>Vehículos</span><span class="crumb-divider">/</span><strong id="vehicle-plate">—</strong></div>
+              <div class="toolbar-actions">
+                <button id="back-to-search" class="button button-light" type="button">Volver a resultados</button>
+                <button id="new-service-button" class="button button-primary" type="button">＋ Nuevo servicio</button>
+              </div>
+            </div>
+
+            <article class="work-order">
+              <header class="order-header">
+                <div>
+                  <p class="eyebrow">CONTACTO DEL VEHÍCULO</p>
+                  <h2 id="vehicle-contact-name">—</h2>
+                  <p id="vehicle-contact-phone" class="muted">—</p>
+                </div>
+                <div class="order-date">
+                  <span>HISTORIAL</span>
+                  <strong id="vehicle-history-count">—</strong>
+                </div>
+              </header>
+
+              <section class="plate-banner">
+                <div class="plate-icon" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M5 8h22a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z"></path><path d="M8 13h2m4 0h2m4 0h2m-14 6h16"></path></svg>
+                </div>
+                <div class="plate-main">
+                  <span>PATENTE</span>
+                  <strong id="vehicle-plate-banner">—</strong>
+                </div>
+                <div class="plate-divider"></div>
+                <div class="vehicle-main">
+                  <span>VEHÍCULO</span>
+                  <strong id="vehicle-name">—</strong>
+                </div>
+              </section>
+
+              <section class="history-section" aria-labelledby="history-heading">
+                <div class="history-heading">
+                  <div>
+                    <p class="eyebrow">MANTENCIONES Y TRABAJOS</p>
+                    <h2 id="history-heading">Historial de servicios</h2>
+                  </div>
+                  <span id="history-total" class="count-badge">52</span>
+                </div>
+                <div id="history-list" class="history-list"></div>
+                <nav class="history-pagination" aria-label="Paginación del historial">
+                  <button id="history-prev" class="button button-light" type="button">← Anterior</button>
+                  <span id="history-page-label" aria-live="polite"></span>
+                  <button id="history-next" class="button button-light" type="button">Siguiente →</button>
+                </nav>
+              </section>
+              <footer class="order-footer">
+                <span>Historial importado · Solo prueba local</span>
+                <span>Sin fotos cargadas</span>
+              </footer>
+            </article>
+          </section>
+
+          <div id="detail-view" hidden>
+            <div class="detail-toolbar app-chrome">
+              <button id="back-to-history" class="button button-light" type="button">← Volver al historial</button>
               <div class="toolbar-actions">
                 <button id="edit-job-button" class="button button-light app-chrome" type="button">Editar</button>
                 <button id="delete-job-button" class="button button-danger app-chrome" type="button">Eliminar</button>
@@ -89,13 +154,13 @@
             <article id="work-order" class="work-order">
               <header class="order-header">
                 <div>
-                  <p class="eyebrow">ORDEN DE TRABAJO <span id="order-number"></span></p>
-                  <h2 id="owner-name">—</h2>
-                  <p id="owner-contact" class="muted">—</p>
+                  <p class="eyebrow">DETALLE DEL SERVICIO <span id="service-id"></span></p>
+                  <h2 id="service-contact-name">—</h2>
+                  <p id="service-contact-phone" class="muted">—</p>
                 </div>
                 <div class="order-date">
-                  <span>FECHA DEL TRABAJO</span>
-                  <strong id="work-date">—</strong>
+                  <span>FECHA DEL SERVICIO</span>
+                  <strong id="service-date">—</strong>
                 </div>
               </header>
 
@@ -105,73 +170,55 @@
                 </div>
                 <div class="plate-main">
                   <span>PATENTE</span>
-                  <strong id="detail-plate">—</strong>
+                  <strong id="service-plate">—</strong>
                 </div>
                 <div class="plate-divider"></div>
                 <div class="vehicle-main">
                   <span>VEHÍCULO</span>
-                  <strong id="vehicle-name">—</strong>
-                </div>
-                <div class="vehicle-extra">
-                  <span>CHASIS</span>
-                  <strong id="chassis-number">—</strong>
+                  <strong id="service-vehicle">—</strong>
                 </div>
               </section>
 
               <section class="info-grid">
                 <div class="info-card">
                   <span class="field-label">KILOMETRAJE</span>
-                  <strong id="mileage">—</strong>
+                  <strong id="service-mileage">—</strong>
                 </div>
                 <div class="info-card">
-                  <span class="field-label">DUEÑO</span>
-                  <strong id="owner-inline">—</strong>
+                  <span class="field-label">MECÁNICO</span>
+                  <strong id="service-mechanic">—</strong>
                 </div>
                 <div class="info-card">
-                  <span class="field-label">REGISTRADO POR</span>
-                  <strong id="creator">—</strong>
+                  <span class="field-label">COSTO REGISTRADO</span>
+                  <strong id="service-cost">—</strong>
                 </div>
+              </section>
+
+              <section class="work-section summary-section">
+                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Resumen</h3>
+                <p id="service-summary" class="section-copy"></p>
               </section>
 
               <section class="work-section">
-                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Trabajo realizado</h3>
-                <p id="work-description" class="section-copy"></p>
+                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Descripción completa</h3>
+                <p id="service-work" class="section-copy"></p>
               </section>
 
               <section class="work-section supplies-section">
-                <h3><span class="section-icon supplies-icon" aria-hidden="true">✓</span> Insumos cambiados</h3>
-                <p id="supplies" class="section-copy"></p>
+                <h3><span class="section-icon supplies-icon" aria-hidden="true">✓</span> Insumos identificados</h3>
+                <p id="service-supplies" class="section-copy"></p>
               </section>
 
               <section class="work-section notes-section">
                 <h3><span class="section-icon notes-icon" aria-hidden="true">≡</span> Observaciones</h3>
-                <p id="observations" class="section-copy"></p>
-              </section>
-
-              <section class="photos-section app-chrome">
-                <div class="photos-heading">
-                  <div>
-                    <h3>Fotos del trabajo <span class="photo-count" id="photo-count">0</span></h3>
-                    <p>Solo elementos ficticios · No se seleccionan ni cargan archivos.</p>
-                  </div>
-                  <button id="add-demo-photo-button" class="button button-light upload-button" type="button">
-                    <span aria-hidden="true">＋</span> Agregar ejemplo
-                  </button>
-                </div>
-                <div id="photo-gallery" class="photo-gallery"></div>
+                <p id="service-observations" class="section-copy"></p>
               </section>
 
               <footer class="order-footer">
-                <span>Bitácora Mecánica · Datos ficticios para demostración</span>
-                <span>Gracias por confiar en nuestro trabajo</span>
+                <span>Detalle del historial importado · Solo prueba local</span>
+                <span>Los cambios no se guardan al recargar</span>
               </footer>
             </article>
-          </div>
-
-          <div id="no-selection" class="no-selection app-chrome" hidden>
-            <span class="no-selection-icon" aria-hidden="true">⌕</span>
-            <h2>Busca una patente</h2>
-            <p>Los resultados de ejemplo aparecerán aquí. La búsqueda no consulta datos reales.</p>
           </div>
         </section>
       </div>
@@ -182,27 +229,26 @@
         <div class="dialog-heading">
           <div>
             <p class="eyebrow">SIMULACIÓN LOCAL</p>
-            <h2 id="job-dialog-title">Nuevo trabajo</h2>
+            <h2 id="job-dialog-title">Nuevo servicio</h2>
           </div>
           <button id="close-job-dialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
         </div>
-        <p class="dialog-warning">Completa solo con datos inventados. Este formulario no guarda ni envía información.</p>
+        <p class="dialog-warning">El historial importado está en los archivos locales. Los cambios del formulario no se guardan ni envían; evita agregar datos sensibles.</p>
         <div class="form-grid">
-          <label>Patente<input name="plate" required maxlength="12" placeholder="DE-MO-04"></label>
+          <label>Patente<input name="plate" required maxlength="12" placeholder="LZ233" readonly></label>
           <label>Fecha<input name="date" type="date" required></label>
-          <label>Dueño ficticio<input name="owner" required maxlength="100" placeholder="Cliente ficticio 04"></label>
-          <label>Teléfono de ejemplo<input name="phone" maxlength="30" placeholder="+56 9 0000 0004"></label>
-          <label>Correo de ejemplo<input name="email" type="email" maxlength="120" placeholder="cliente04@example.invalid"></label>
-          <label>Vehículo<input name="vehicle" required maxlength="100" placeholder="Vehículo de demostración"></label>
-          <label>Chasis<input name="chassis" maxlength="60" placeholder="CHASIS-DEMO-0004"></label>
-          <label>Kilometraje<input name="mileage" type="number" min="0" step="1" value="0" required></label>
-          <label class="form-wide">Trabajo realizado<textarea name="work" rows="3" maxlength="2000" placeholder="Descripción ficticia"></textarea></label>
-          <label class="form-wide">Insumos cambiados<textarea name="supplies" rows="2" maxlength="1000" placeholder="Insumos de ejemplo"></textarea></label>
-          <label class="form-wide">Observaciones<textarea name="notes" rows="2" maxlength="1000" placeholder="Observaciones ficticias"></textarea></label>
+          <label>Contacto<input name="owner" required maxlength="100" placeholder="Matias Cuevas"></label>
+          <label>Teléfono<input name="phone" maxlength="30" placeholder="+569 900 91 888"></label>
+          <label>Vehículo<input name="vehicle" required maxlength="100" placeholder="BMW R1200GS (2005)"></label>
+          <label>Kilometraje<input name="mileage" type="number" min="0" step="1"></label>
+          <label>Costo registrado<input name="cost" maxlength="30" placeholder="$0"></label>
+          <label class="form-wide">Trabajo realizado<textarea name="work" rows="3" maxlength="2000"></textarea></label>
+          <label class="form-wide">Insumos cambiados<textarea name="supplies" rows="2" maxlength="1000"></textarea></label>
+          <label class="form-wide">Observaciones<textarea name="notes" rows="2" maxlength="1000"></textarea></label>
         </div>
         <div class="dialog-actions">
           <button id="cancel-job-dialog" class="button button-light" type="button">Cancelar</button>
-          <button class="button button-primary" type="submit">Guardar ejemplo</button>
+          <button class="button button-primary" type="submit">Guardar registro</button>
         </div>
       </form>
     </dialog>

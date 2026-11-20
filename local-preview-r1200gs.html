@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <style>
+  :root {
+    color-scheme: light;
+    --ink: #1d2b37;
+    --muted: #74818b;
+    --line: #e6eaed;
+    --paper: #ffffff;
+    --canvas: #f4f6f7;
+    --navy: #183548;
+    --teal: #167b72;
+    --teal-pale: #e9f5f2;
+    --amber: #7d5411;
+    --amber-pale: #fff5dc;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--canvas);
+    font: 14px/1.5 Arial, Helvetica, sans-serif;
+  }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  .app-header {
+    height: 74px;
+    padding: 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--navy);
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+  .brand-copy { display: grid; line-height: 1.25; }
+  .brand-copy strong { font-size: 15px; }
+  .brand-copy span { margin-top: 3px; color: var(--muted); font-size: 12px; }
+  .header-right, .profile-chip { display: flex; align-items: center; }
+  .header-right { gap: 22px; }
+  .demo-user { display: flex; align-items: center; gap: 9px; color: #53616b; }
+  .demo-user-copy { display: grid; line-height: 1.25; }
+  .demo-user-copy strong { font-size: 11px; }
+  .demo-user-copy small { margin-top: 3px; color: #8a969d; font-size: 9px; }
+  .demo-user select { max-width: 154px; padding: 6px 24px 6px 8px; border: 1px solid #dfe5e7; border-radius: 7px; background: white; color: #52616b; font-size: 10px; }
+  .demo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border: 1px solid #f0dfb6;
+    border-radius: 999px;
+    color: var(--amber);
+    background: var(--amber-pale);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d29a31; }
+  .profile-chip { gap: 9px; color: #53616b; font-size: 12px; font-weight: 700; }
+  .profile-avatar {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #edf1f3;
+    color: #51616c;
+    font-size: 10px;
+    font-weight: 800;
+  }
+  main { max-width: 1440px; margin: 0 auto; padding: 24px 32px 40px; }
+  .security-banner {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 17px;
+    border: 1px solid #ecd7a8;
+    border-radius: 10px;
+    background: #fff9eb;
+    color: #60491e;
+  }
+  .banner-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #dcb967;
+    border-radius: 50%;
+    font-weight: 800;
+  }
+  .security-banner strong { font-size: 12px; }
+  .security-banner p { margin: 2px 0 0; color: #786642; font-size: 12px; }
+  .workspace { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 22px; margin-top: 20px; align-items: start; }
+  .workspace.page-focus { grid-template-columns: minmax(0, 1fr); }
+  .workspace.page-focus .jobs-panel { display: none; }
+  .jobs-panel, .detail-panel { min-width: 0; }
+  .jobs-panel {
+    min-height: 710px;
+    padding: 21px 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+  }
+  .panel-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 23px; }
+  .eyebrow { margin: 0 0 5px; color: #84919a; font-size: 10px; font-weight: 800; letter-spacing: .09em; }
+  .panel-heading h1 { margin: 0; font-size: 21px; letter-spacing: -.03em; }
+  .count-badge { min-width: 28px; padding: 4px 8px; border-radius: 999px; background: #eef2f4; color: #66747e; text-align: center; font-size: 11px; font-weight: 800; }
+  .search-label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+  .search-box { position: relative; }
+  .search-box svg {
+    position: absolute;
+    top: 11px;
+    left: 11px;
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: #8d99a1;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+  .search-box input {
+    width: 100%;
+    height: 40px;
+    padding: 0 36px;
+    border: 1px solid #dce2e5;
+    border-radius: 7px;
+    outline: none;
+    background: white;
+    color: var(--ink);
+  }
+  .search-box input:focus { border-color: #81b9b1; box-shadow: 0 0 0 3px #e8f4f1; }
+  .search-box input::placeholder { color: #a4adb3; }
+  .clear-search { position: absolute; top: 6px; right: 7px; width: 28px; height: 28px; border: 0; background: transparent; color: #78858d; font-size: 20px; }
+  .hint { margin: 7px 0 16px; color: #818d95; font-size: 10px; }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .button-primary { background: var(--teal); color: white; }
+  .button-primary:hover:not(:disabled) { background: #126a63; }
+  .button-light { border-color: #e0e5e8; background: white; color: #52616b; }
+  .button-danger { border-color: #f0dddd; background: #fff; color: #a55757; }
+  .button:disabled { opacity: .48; }
+  .new-job { width: 100%; }
+  .new-job span { font-size: 17px; line-height: 1; }
+  .disabled-note { margin: 7px 0 22px; color: #909ba2; font-size: 10px; text-align: center; }
+  .list-heading { display: flex; justify-content: space-between; padding: 0 2px 9px; border-bottom: 1px solid #edf0f2; color: #8b969d; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+  .jobs-list { display: grid; gap: 7px; padding-top: 8px; }
+  .job-item {
+    width: 100%;
+    padding: 11px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+  }
+  .job-item:hover { background: #f6f8f8; }
+  .job-item.selected { border-color: #c9e2dd; background: #f0f8f6; }
+  .job-item-top, .job-item-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .job-plate { font-size: 13px; font-weight: 800; letter-spacing: .045em; }
+  .job-date { color: #849099; font-size: 10px; }
+  .job-owner { display: block; margin-top: 5px; overflow: hidden; color: #52616b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .job-vehicle { margin-top: 3px; color: #909aa1; font-size: 10px; }
+  .empty-state, .initial-state { padding: 24px 10px; color: #89949b; text-align: center; }
+  .empty-state { display: grid; justify-items: center; gap: 7px; }
+  .empty-state[hidden], .initial-state[hidden] { display: none; }
+  .empty-state strong { color: #53616b; font-size: 12px; }
+  .empty-state span:last-child, .initial-state { font-size: 11px; }
+  .empty-icon { color: #9aa5ab; font-size: 26px; }
+  .history-section { margin: 20px 0 4px; }
+  .history-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+  .history-heading h2 { margin: 0; font-size: 17px; }
+  .history-list { display: grid; gap: 8px; }
+  .history-item { width: 100%; padding: 12px 14px; border: 1px solid #e8edef; border-radius: 9px; background: #fff; color: var(--ink); text-align: left; }
+  .history-item:hover { border-color: #b9d8d2; background: #f7fbfa; }
+  .history-item:focus-visible { outline: 3px solid #b9d8d2; outline-offset: 2px; }
+  .history-item-meta { display: flex; justify-content: space-between; gap: 12px; color: #697780; font-size: 10px; }
+  .history-item-meta strong { color: var(--teal); font-size: 11px; }
+  .history-item-summary { display: block; margin-top: 6px; font-size: 12px; font-weight: 750; line-height: 1.45; }
+  .history-item-mechanic { display: block; margin-top: 5px; color: #78858e; font-size: 10px; }
+  .history-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; }
+  .history-pagination span { min-width: 90px; color: #6f7c84; font-size: 10px; text-align: center; }
+  .detail-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 4px 1px; }
+  .breadcrumb { color: #89959d; font-size: 11px; }
+  .breadcrumb strong { color: #52616b; }
+  .crumb-divider { margin: 0 8px; color: #c0c7cb; }
+  .toolbar-actions { display: flex; gap: 7px; }
+  .toolbar-actions .button { min-height: 33px; }
+  .print-button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+  .work-order { padding: 27px 30px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: 0 3px 14px #20384908; }
+  .order-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 19px; border-bottom: 1px solid #edf0f1; }
+  .order-header h2 { margin: 2px 0 3px; font-size: 19px; letter-spacing: -.03em; }
+  .order-header .eyebrow { color: var(--teal); }
+  .muted { margin: 0; color: #78858e; font-size: 11px; }
+  .order-date { padding-top: 2px; text-align: right; }
+  .order-date span, .field-label { display: block; color: #89959c; font-size: 9px; font-weight: 800; letter-spacing: .07em; }
+  .order-date strong { display: block; margin-top: 5px; font-size: 12px; }
+  .plate-banner { display: flex; align-items: center; gap: 15px; margin: 18px 0; padding: 15px 17px; border: 1px solid #e6ecee; border-radius: 9px; background: #fafcfc; }
+  .plate-icon { display: grid; place-items: center; width: 39px; height: 39px; border-radius: 9px; background: var(--teal-pale); }
+  .plate-icon svg { width: 24px; height: 24px; fill: none; stroke: var(--teal); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
+  .plate-main, .vehicle-main, .vehicle-extra { display: grid; gap: 4px; }
+  .plate-main span, .vehicle-main span, .vehicle-extra span { color: #8a969d; font-size: 9px; font-weight: 800; letter-spacing: .07em; }
+  .plate-main strong { font-size: 16px; letter-spacing: .08em; }
+  .vehicle-main strong, .vehicle-extra strong { font-size: 11px; }
+  .plate-divider { width: 1px; height: 34px; margin: 0 4px; background: #e2e8ea; }
+  .vehicle-extra { margin-left: auto; text-align: right; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 21px; }
+  .info-card { min-width: 0; min-height: 62px; padding: 11px 12px; border: 1px solid #edf0f2; border-radius: 8px; }
+  .info-card strong { display: block; margin-top: 5px; overflow-wrap: anywhere; font-size: 11px; }
+  .work-section { margin: 18px 0; }
+  .summary-section { padding: 11px 13px; border: 1px solid #e6efed; border-radius: 8px; background: #f7fbfa; }
+  .work-section h3, .photos-heading h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 12px; }
+  .section-icon { display: grid; place-items: center; width: 21px; height: 21px; border-radius: 6px; font-size: 12px; font-weight: 800; }
+  .work-icon { background: #eef4fa; color: #46749a; }
+  .supplies-icon { background: #eaf5ee; color: #398051; }
+  .notes-icon { background: #f4effa; color: #8065a2; }
+  .section-copy { margin: 0 0 0 29px; color: #596771; font-size: 11px; line-height: 1.7; white-space: pre-line; }
+  .photos-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid #edf0f2; }
+  .photos-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .photos-heading h3 { margin-bottom: 3px; }
+  .photos-heading p { margin: 0; color: #909aa1; font-size: 10px; }
+  .photo-count { padding: 2px 6px; border-radius: 999px; background: #eef2f4; color: #687781; font-size: 9px; }
+  .upload-button { min-height: 31px; font-size: 10px; }
+  .photo-gallery { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+  .photo-tile { display: grid; justify-items: center; gap: 4px; }
+  .photo-placeholder {
+    display: grid;
+    place-items: center;
+    width: 82px;
+    height: 61px;
+    border: 1px dashed #dce4e6;
+    border-radius: 7px;
+    background: linear-gradient(145deg, #f3f6f6 50%, #e9eeee 50%);
+    color: #9aa6ab;
+    font-size: 9px;
+  }
+  .photo-remove { padding: 2px 5px; border: 0; background: transparent; color: #a55757; font-size: 8px; }
+  .order-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 21px; padding-top: 12px; border-top: 1px solid #edf0f2; color: #939da3; font-size: 9px; }
+  .no-selection { display: grid; min-height: 450px; align-content: center; justify-items: center; padding: 24px; border: 1px dashed #dce2e5; border-radius: 12px; background: #fafbfb; text-align: center; }
+  .no-selection[hidden] { display: none; }
+  .no-selection-icon { color: #98a5aa; font-size: 35px; }
+  .no-selection h2 { margin: 9px 0 4px; font-size: 17px; }
+  .no-selection p { max-width: 270px; margin: 0; color: #849098; font-size: 11px; }
+  .job-dialog { width: min(680px, calc(100% - 28px)); max-height: min(90vh, 820px); padding: 0; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: white; color: var(--ink); box-shadow: 0 18px 60px #10253338; }
+  .job-dialog::backdrop { background: #10253380; backdrop-filter: blur(2px); }
+  .job-form { padding: 24px; }
+  .dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .dialog-heading h2 { margin: 0 0 14px; font-size: 21px; }
+  .dialog-close { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 50%; background: white; color: var(--muted); font-size: 21px; }
+  .dialog-warning { margin: 0 0 17px; padding: 10px 12px; border: 1px solid #ecd7a8; border-radius: 8px; background: #fff9eb; color: #715821; font-size: 11px; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .form-grid label { display: grid; gap: 5px; color: #53616b; font-size: 10px; font-weight: 700; }
+  .form-grid input, .form-grid textarea { width: 100%; padding: 9px 10px; border: 1px solid #dce2e5; border-radius: 7px; outline: none; background: #fbfcfc; color: var(--ink); font-size: 12px; font-weight: 400; }
+  .form-grid input:focus, .form-grid textarea:focus { border-color: #81b9b1; box-shadow: 0 0 0 3px #e8f4f1; }
+  .form-grid textarea { resize: vertical; }
+  .form-wide { grid-column: 1 / -1; }
+  .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+  @media (max-width: 980px) {
+    main { padding: 18px 18px 30px; }
+    .workspace { grid-template-columns: 270px minmax(0, 1fr); gap: 14px; }
+    .jobs-panel { padding: 18px 14px; }
+    .work-order { padding: 22px 20px 16px; }
+    .toolbar-actions .button { padding: 0 9px; }
+  }
+  @media (max-width: 720px) {
+    .app-header { height: auto; min-height: 64px; flex-wrap: wrap; gap: 9px; padding: 9px 12px; }
+    .brand-mark { width: 36px; height: 36px; }
+    .brand-copy strong { font-size: 13px; }
+    .brand-copy span { font-size: 10px; }
+    .header-right { width: 100%; justify-content: space-between; gap: 7px; }
+    .demo-pill { max-width: 142px; white-space: normal; line-height: 1.2; }
+    .demo-user { gap: 5px; }
+    .demo-user-copy { display: none; }
+    .demo-user select { max-width: 100px; min-width: 0; font-size: 9px; }
+    .demo-pill { padding: 6px 8px; font-size: 8px; }
+    main { padding: 13px 12px 24px; }
+    .security-banner { padding: 11px 12px; gap: 9px; }
+    .security-banner p { line-height: 1.45; }
+    .workspace { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+    .workspace.page-focus { display: block; }
+    .jobs-panel, .detail-panel { width: 100%; }
+    .jobs-panel { min-height: 0; padding: 16px 14px; }
+    .panel-heading { margin-bottom: 14px; }
+    .jobs-list { grid-template-columns: 1fr; }
+    .detail-toolbar { align-items: flex-start; flex-direction: column; }
+    .toolbar-actions { width: 100%; }
+    .toolbar-actions .button { flex: 1; }
+    .work-order { padding: 18px 15px 14px; }
+    .plate-banner { flex-wrap: wrap; gap: 10px; padding: 12px 10px; }
+    .plate-icon { width: 34px; height: 34px; }
+    .plate-main strong { font-size: 14px; }
+    .vehicle-main { min-width: 0; }
+    .vehicle-main strong { overflow-wrap: anywhere; }
+    .order-header { align-items: flex-start; flex-direction: column; }
+    .order-date { text-align: left; }
+    .vehicle-extra { display: none; }
+    .plate-divider { margin: 0 1px; }
+    .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .info-card { padding: 9px 8px; }
+    .info-card strong { font-size: 10px; }
+    .photos-heading { align-items: flex-start; }
+    .photos-heading p { max-width: 200px; }
+    .order-footer { flex-direction: column; gap: 4px; }
+    .job-form { padding: 18px; }
+    .form-grid { grid-template-columns: 1fr; gap: 10px; }
+    .form-wide { grid-column: auto; }
+  }
+  @media print {
+    @page { margin: 14mm; }
+    body { background: white; color: #111; font-size: 10pt; }
+    .app-chrome, .security-banner, .jobs-panel, .detail-toolbar, .photos-section { display: none !important; }
+    main { max-width: none; margin: 0; padding: 0; }
+    .workspace { display: block; margin: 0; }
+    .detail-panel { display: block; }
+    .work-order { padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+    .order-header, .plate-banner, .info-card { break-inside: avoid; }
+    .order-header { padding-bottom: 12px; }
+    .plate-banner { background: #fafafa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-copy { color: #222; font-size: 10pt; }
+    .order-footer { margin-top: 24px; }
+  }
+</style>
+
+  </head>
+  <body>
+    <header class="app-header app-chrome">
+      <a class="brand" href="#" aria-label="Bitácora Mecánica, inicio">
+        <span class="brand-mark" aria-hidden="true">BM</span>
+        <span class="brand-copy">
+          <strong>Bitácora Mecánica</strong>
+          <span>Marco “Pelao” Cifuentes</span>
+        </span>
+      </a>
+      <div class="header-right">
+        <span class="demo-pill"><span class="status-dot"></span> PRUEBA LOCAL · HISTORIAL IMPORTADO</span>
+        <label class="demo-user" for="demo-role">
+          <span class="profile-avatar" id="profile-avatar">MT</span>
+          <span class="demo-user-copy"><strong id="profile-name">Matías · Admin</strong><small>Simulación visual de rol</small></span>
+          <select id="demo-role" aria-label="Cambiar rol de demostración">
+            <option value="ADMIN">Matías · Admin</option>
+            <option value="MECHANIC">Marco · Mecánico</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section class="security-banner" role="status">
+        <span class="banner-icon" aria-hidden="true">!</span>
+        <div>
+          <strong>Vista local: no se conecta a Supabase, Sheets ni Drive.</strong>
+          <p>Incluye el historial que compartiste para tu BMW R1200GS. Está embebido en Client.html; no hagas commit/push ni compartas este proyecto sin retirar esos datos. Los cambios de la maqueta se pierden al recargar.</p>
+        </div>
+      </section>
+
+      <div class="workspace">
+        <aside class="jobs-panel app-chrome" aria-label="Búsqueda de vehículos">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">TALLER MECÁNICO</p>
+              <h1>Vehículos</h1>
+            </div>
+            <span class="count-badge" id="vehicle-count">0</span>
+          </div>
+
+          <label class="search-label" for="plate-search">Buscar por patente</label>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.5 4.5"></path></svg>
+            <input id="plate-search" type="search" placeholder="Ej. LZ233" autocomplete="off">
+            <button id="clear-search" class="clear-search" type="button" aria-label="Limpiar búsqueda" hidden>×</button>
+          </div>
+          <p class="hint">Escribe parte de la patente; ignora mayúsculas, espacios y guiones.</p>
+
+          <button id="new-job-button" class="button button-primary new-job" type="button">
+            <span aria-hidden="true">＋</span> Nuevo servicio
+          </button>
+          <p class="disabled-note">Prueba local · sin guardar ni enviar datos.</p>
+
+          <div class="list-heading">
+            <span>VEHÍCULOS</span>
+            <span id="results-label"></span>
+          </div>
+          <div id="jobs-list" class="jobs-list" aria-live="polite"></div>
+          <p id="empty-state" class="empty-state" hidden>
+            <span class="empty-icon" aria-hidden="true">⌕</span>
+            <strong>No encontramos coincidencias</strong>
+            <span>Prueba con otros caracteres de la patente.</span>
+          </p>
+          <p id="initial-state" class="initial-state" hidden>Busca una patente para ver el vehículo.</p>
+        </aside>
+
+        <section class="detail-panel" aria-label="Historial y detalle del servicio">
+          <div id="no-selection" class="no-selection app-chrome">
+            <span class="no-selection-icon" aria-hidden="true">⌕</span>
+            <h2>Busca una patente</h2>
+            <p>Escribe LZ233 para encontrar el vehículo y abrir su historial.</p>
+          </div>
+
+          <section id="vehicle-view" hidden>
+            <div class="detail-toolbar app-chrome">
+              <div class="breadcrumb"><span>Vehículos</span><span class="crumb-divider">/</span><strong id="vehicle-plate">—</strong></div>
+              <div class="toolbar-actions">
+                <button id="back-to-search" class="button button-light" type="button">Volver a resultados</button>
+                <button id="new-service-button" class="button button-primary" type="button">＋ Nuevo servicio</button>
+              </div>
+            </div>
+
+            <article class="work-order">
+              <header class="order-header">
+                <div>
+                  <p class="eyebrow">CONTACTO DEL VEHÍCULO</p>
+                  <h2 id="vehicle-contact-name">—</h2>
+                  <p id="vehicle-contact-phone" class="muted">—</p>
+                </div>
+                <div class="order-date">
+                  <span>HISTORIAL</span>
+                  <strong id="vehicle-history-count">—</strong>
+                </div>
+              </header>
+
+              <section class="plate-banner">
+                <div class="plate-icon" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M5 8h22a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z"></path><path d="M8 13h2m4 0h2m4 0h2m-14 6h16"></path></svg>
+                </div>
+                <div class="plate-main">
+                  <span>PATENTE</span>
+                  <strong id="vehicle-plate-banner">—</strong>
+                </div>
+                <div class="plate-divider"></div>
+                <div class="vehicle-main">
+                  <span>VEHÍCULO</span>
+                  <strong id="vehicle-name">—</strong>
+                </div>
+              </section>
+
+              <section class="history-section" aria-labelledby="history-heading">
+                <div class="history-heading">
+                  <div>
+                    <p class="eyebrow">MANTENCIONES Y TRABAJOS</p>
+                    <h2 id="history-heading">Historial de servicios</h2>
+                  </div>
+                  <span id="history-total" class="count-badge">52</span>
+                </div>
+                <div id="history-list" class="history-list"></div>
+                <nav class="history-pagination" aria-label="Paginación del historial">
+                  <button id="history-prev" class="button button-light" type="button">← Anterior</button>
+                  <span id="history-page-label" aria-live="polite"></span>
+                  <button id="history-next" class="button button-light" type="button">Siguiente →</button>
+                </nav>
+              </section>
+              <footer class="order-footer">
+                <span>Historial importado · Solo prueba local</span>
+                <span>Sin fotos cargadas</span>
+              </footer>
+            </article>
+          </section>
+
+          <div id="detail-view" hidden>
+            <div class="detail-toolbar app-chrome">
+              <button id="back-to-history" class="button button-light" type="button">← Volver al historial</button>
+              <div class="toolbar-actions">
+                <button id="edit-job-button" class="button button-light app-chrome" type="button">Editar</button>
+                <button id="delete-job-button" class="button button-danger app-chrome" type="button">Eliminar</button>
+                <button id="print-button" class="button button-primary print-button" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path><path d="M7 14h10v7H7zM18 11h.01"></path></svg>
+                  Imprimir orden
+                </button>
+              </div>
+            </div>
+
+            <article id="work-order" class="work-order">
+              <header class="order-header">
+                <div>
+                  <p class="eyebrow">DETALLE DEL SERVICIO <span id="service-id"></span></p>
+                  <h2 id="service-contact-name">—</h2>
+                  <p id="service-contact-phone" class="muted">—</p>
+                </div>
+                <div class="order-date">
+                  <span>FECHA DEL SERVICIO</span>
+                  <strong id="service-date">—</strong>
+                </div>
+              </header>
+
+              <section class="plate-banner">
+                <div class="plate-icon" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M5 8h22a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z"></path><path d="M8 13h2m4 0h2m4 0h2m-14 6h16"></path></svg>
+                </div>
+                <div class="plate-main">
+                  <span>PATENTE</span>
+                  <strong id="service-plate">—</strong>
+                </div>
+                <div class="plate-divider"></div>
+                <div class="vehicle-main">
+                  <span>VEHÍCULO</span>
+                  <strong id="service-vehicle">—</strong>
+                </div>
+              </section>
+
+              <section class="info-grid">
+                <div class="info-card">
+                  <span class="field-label">KILOMETRAJE</span>
+                  <strong id="service-mileage">—</strong>
+                </div>
+                <div class="info-card">
+                  <span class="field-label">MECÁNICO</span>
+                  <strong id="service-mechanic">—</strong>
+                </div>
+                <div class="info-card">
+                  <span class="field-label">COSTO REGISTRADO</span>
+                  <strong id="service-cost">—</strong>
+                </div>
+              </section>
+
+              <section class="work-section summary-section">
+                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Resumen</h3>
+                <p id="service-summary" class="section-copy"></p>
+              </section>
+
+              <section class="work-section">
+                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Descripción completa</h3>
+                <p id="service-work" class="section-copy"></p>
+              </section>
+
+              <section class="work-section supplies-section">
+                <h3><span class="section-icon supplies-icon" aria-hidden="true">✓</span> Insumos identificados</h3>
+                <p id="service-supplies" class="section-copy"></p>
+              </section>
+
+              <section class="work-section notes-section">
+                <h3><span class="section-icon notes-icon" aria-hidden="true">≡</span> Observaciones</h3>
+                <p id="service-observations" class="section-copy"></p>
+              </section>
+
+              <footer class="order-footer">
+                <span>Detalle del historial importado · Solo prueba local</span>
+                <span>Los cambios no se guardan al recargar</span>
+              </footer>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <dialog id="job-dialog" class="job-dialog">
+      <form id="job-form" class="job-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">SIMULACIÓN LOCAL</p>
+            <h2 id="job-dialog-title">Nuevo servicio</h2>
+          </div>
+          <button id="close-job-dialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+        </div>
+        <p class="dialog-warning">El historial importado está en los archivos locales. Los cambios del formulario no se guardan ni envían; evita agregar datos sensibles.</p>
+        <div class="form-grid">
+          <label>Patente<input name="plate" required maxlength="12" placeholder="LZ233" readonly></label>
+          <label>Fecha<input name="date" type="date" required></label>
+          <label>Contacto<input name="owner" required maxlength="100" placeholder="Matias Cuevas"></label>
+          <label>Teléfono<input name="phone" maxlength="30" placeholder="+569 900 91 888"></label>
+          <label>Vehículo<input name="vehicle" required maxlength="100" placeholder="BMW R1200GS (2005)"></label>
+          <label>Kilometraje<input name="mileage" type="number" min="0" step="1"></label>
+          <label>Costo registrado<input name="cost" maxlength="30" placeholder="$0"></label>
+          <label class="form-wide">Trabajo realizado<textarea name="work" rows="3" maxlength="2000"></textarea></label>
+          <label class="form-wide">Insumos cambiados<textarea name="supplies" rows="2" maxlength="1000"></textarea></label>
+          <label class="form-wide">Observaciones<textarea name="notes" rows="2" maxlength="1000"></textarea></label>
+        </div>
+        <div class="dialog-actions">
+          <button id="cancel-job-dialog" class="button button-light" type="button">Cancelar</button>
+          <button class="button button-primary" type="submit">Guardar registro</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>(() => {
+  'use strict';
+
+  const motorcycle = {
+    plate: 'LZ233',
+    owner: 'Matias Cuevas',
+    phone: '+569 900 91 888',
+    vehicle: 'BMW R1200GS (2005)'
+  };
+  const csvHistory = [
+    ["30/11/2020","diciembre 2020","75.000","Compra de Motocicleta","","",""],
+    ["7/12/2020","diciembre 2020","76.000","Cambio de Aceite de Motor","Matias Cuevas","$17.000",""],
+    ["7/12/2020","diciembre 2020","76.000","3 bujias/ 1 iridiuum 2 normales","Matias Cuevas","$21.350","2 Bujias Denso / 1 NGK"],
+    ["1/2/2021","febrero 2021","77.900","4 Bujias NGK 2 Electrodo (Originales)","Matias Cuevas","$25.000",""],
+    ["1/3/2021","marzo 2021","78.000","Cambio Liquido de Frenos\nMantenci\u00f3n deposito de Frenos\nCambio Liquido de Embrague\nMantenci\u00f3n Deposito de Embrague\nCambio de Pastillas delanteras\nCambio de Pasillas Traseras\nCambio Liquido Corona\nCambio fuelle cardan\nCambio fuelle corona\nReemplazo de pernos de parabrisa\nAjuste ampolleta trasera Foco","Pelao Cifuentes","$665.000",""],
+    ["8/3/2021","marzo 2021","78.000","Cambio ret\u00e9n exterior corona\nCambio ret\u00e9n interior corona","Pelao Cifuentes","$420.000",""],
+    ["16/4/2021","abril 2021","78.600","Cambio de 2 bobinas principales (las que van embutidas en el cilindro)","Pelao Cifuentes","$432.000",""],
+    ["13/7/2021","julio 2021","80.100","Cambio de Bateria","Matias Cuevas","$82.900","Bateria Motobatt MBYZ16H"],
+    ["8/10/2021","octubre 2021","82.300","Cambio de filtro de Aire","Matias Cuevas","$83.610","filtro de aire KyN"],
+    ["3/11/0201","noviembre 0201","83.500","cambio de aceite 20w50 y filtro de aceite","Matias Cuevas","$32.000",""],
+    ["4/12/2021","diciembre 2021","84.488","cambio de aceite de corona, aceite de caja, switch de freno delantero y switch de embrague","Pelao Cifuentes","$424.164",""],
+    ["7/2/2022","febrero 2022","88.200","cambio de aceite de corona, sensor de cambios","Pelao Cifuentes","$0",""],
+    ["9/3/2023","marzo 2023","88.500","Ajuste de Valvulas","Pelao Cifuentes","$120.000",""],
+    ["27/3/2022","marzo 2022","89.500","Cambio de Neumatico Delantero","Matias Cuevas","$60.000","metzeler karoo 3 120/70-19"],
+    ["5/6/2022","junio 2022","","Tapas de ampolletas para focos","Matias Cuevas","$10.000","se quitaron a los pocos kms, se ca\u00edan de su posici\u00f3n"],
+    ["29/7/2022","julio 2022","93.300","Cambio foco trasero por uno led","Matias Cuevas","$45.000","cambio de foco, debido a rotura de soquete de ampolleta, provocando que se fundan las ampolletas"],
+    ["29/7/2022","julio 2022","93.300","Cambio focos delantero por LED (posici\u00f3n, baja, alta)","Matias Cuevas","$16.000",""],
+    ["30/7/2022","julio 2022","93.320","Compra de protector de foco","Matias Cuevas","$20.000",""],
+    ["19/9/2022","septiembre 2022","94.000","cambio de aceite de motor y filtro de aceite","Matias Cuevas","$35.000",""],
+    ["05/02/2023","febrero 2023","99.000","Cambio de Bujias y correa de Alternador","Matias Cuevas","$32.000","Bujias NGK"],
+    ["20/04/2023","abril 2023","100.900","Cambio de Neumatico Trasero","Motoss","$114.000","Neumatico Avon TrailRider"],
+    ["09/05/2023","mayo 2023","101.300","Mantenci\u00f3n y Limpieza Admisi\u00f3n, Filtro de Aire","Matias Cuevas","$0","Limpieza y mantenci\u00f3n \nIntake de Admisi\u00f3n y \nmantenci\u00f3n de Filtro de Aire,\n Instalaci\u00f3n DB Killer Escape"],
+    ["08/08/2023","agosto 2023","103.700","Cambio Neumatico Delantero, y balanceo","Moto Impacto","$170.000","Neumatico Heidenau K76"],
+    ["21/09/2023","septiembre 2023","105.000","cambio de aceite de motor","Matias Cuevas","$35.000",""],
+    ["24/11/2023","noviembre 2023","107.000","Compra de Pastillas de Freno Traseras, Filtro de Aceite","Matias Cuevas","$42.250","pastillas de freno Brenta, sintetizadas"],
+    ["06/12/2023","diciembre 2023","108.000","Cambio de Embrague, reten Eje","Pelao Cifuentes","$780.000","Diisco de Embrague y ret\u00e9n original BMW"],
+    ["06/12/2023","diciembre 2023","108.000","Cambio Reten Eje compensador","Pelao Cifuentes","$90.000","Para saldar fuga de aceite por la tapa de correa alternador"],
+    ["06/12/2023","diciembre 2023","108.000","Cambio Tensor Correa Distribuci\u00f3n Cilindro Derecho (perspectiva arriba de la moto)","Pelao Cifuentes","$140.000","Para resolver sonido similar a valvulas cuando se acelera la moto"],
+    ["06/12/2023","diciembre 2023","108.000","Instalaci\u00f3n y compra de pernos  originales que afirman el subchasis","Pelao Cifuentes","$20.000","Se compraron al Jhonny Motos ya que no estaban, cuando se abrio la moto para cambiar embrague"],
+    ["07/12/2023","diciembre 2023","108.000","Reparaci\u00f3n Hilo Motor Soporte Defensas Inferiores","Lalo Torno","$15.000",""],
+    ["07/12/2023","diciembre 2023","108.000","Cambio de Pastillas Traseras","Pelao Cifuentes","$0","El precio de las pastillas aparece anteriormente (Fila 37) un total de $32000"],
+    ["07/12/2023","diciembre 2023","108.000","Se observan Grietas en fuelle de corona, y corte en el fuelle del basculante","Pelao Cifuentes","$0","La goma se ve reseca, provocando cortes en el fuelle que va en la caja de cambios, en la de la corona solo se ve reseca y con grietas. Se deduce que es por desgaste de material."],
+    ["14/12/2023","diciembre 2023","108.600","Se cambia fuelle de caja de cambios","Pelao Cifuentes","$350.000","300.000 fuelle original bmw + 50,000 mano de obra"],
+    ["06/07/2024","julio 2024","111.000","Compra y cambio de Pu\u00f1o derecho","Pelao Cifuentes","$198.000",""],
+    ["06/07/2024","julio 2024","111.000","Liq de frenos","Pelao Cifuentes","$60.000","Relleno liq. de frenos"],
+    ["01/08/2024","agosto 2024","","Compra Aceite Motor","Matias Cuevas","$20.000",""],
+    ["","","113000,00","cambio reten cigue\u00f1al","Pelao Cifuentes","$140.000",""],
+    ["","","113000,00","cambio golilla tensor de distribucion","Pelao Cifuentes","$60.000",""],
+    ["","","113000,00","revisar foco trasero","Pelao Cifuentes","$0",""],
+    ["","","113000,00","cambiar empaquetadura cilindros","Pelao Cifuentes","$60.000",""],
+    ["","","113000,00","Cambio liquido Corona","","",""],
+    ["","","","cambio fuelles trasero","","",""],
+    ["","","114000,00","cambio rodamientos rueda delantera","Pelao Cifuentes","$80.000",""],
+    ["","","","abono llanta delantera de rayos","Pelao Cifuentes","$50.000","pendiente 150.000 restantes"],
+    ["30/08/2024","agosto 2024","115000,00","renovaci\u00f3n instalaci\u00f3n el\u00e9ctrica de accesorios","Pelao Cifuentes","$140.000","instalalacion neblineros"],
+    ["30/11/2024","noviembre 2024","117000,00","renovaci\u00f3n el\u00e9ctrica, nuevos neblineros , toma USB e instalaci\u00f3n de Bocina de Aire","Pelao Cifuentes","$100.000",""],
+    ["02/04/2025","abril 2025","118000,00","limpieza filtro de aire","Matias Cuevas","$0","uso de limpiadores KyN"],
+    ["28/05/2025","mayo 2025","123000,00","Bomba de Bencina","Pelao Cifuentes","$120.000","cambio bomba de bencina marca Bosch"],
+    ["","","","compra cuerpo de aceleraci\u00f3n izquierdo","Pelao Cifuentes","$120.000",""],
+    ["","","","Mano de obra cambio bomba inyectora,  cuerpo aceleraci\u00f3n, cambio de amortiguador, limpieza inyectores","Pelao Cifuentes","$170.000",""],
+    ["","","","","Gravity","$300.000","reparaci\u00f3n amortiguador trasero"],
+    ["02/04/2026","abril 2026","125000,00","cambio aceite corona","Pelao Cifuentes","$0","Aceite liqui Moly"],
+  ];
+
+  function parseCsvDate(value) {
+    const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
+    if (!match) return '';
+    const [, dayText, monthText, yearText] = match;
+    const day = Number(dayText);
+    const month = Number(monthText);
+    const year = Number(yearText);
+    if (year < 1900) return '';
+    const parsedDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      parsedDate.getUTCFullYear() !== year ||
+      parsedDate.getUTCMonth() !== month - 1 ||
+      parsedDate.getUTCDate() !== day
+    ) return '';
+    return `${yearText}-${monthText.padStart(2, '0')}-${dayText.padStart(2, '0')}`;
+  }
+
+  function parseCsvMileage(value) {
+    const normalized = value.trim().replace(/\./g, '').replace(/,00$/, '');
+    if (!/^\d+$/.test(normalized)) return null;
+    const mileage = Number(normalized);
+    return Number.isSafeInteger(mileage) ? mileage : null;
+  }
+
+  function compareServiceRecords(a, b) {
+    if (!a.date && b.date) return 1;
+    if (a.date && !b.date) return -1;
+    return b.date.localeCompare(a.date) || a.csvRow - b.csvRow;
+  }
+
+  const suppliesByCsvRow = {
+    2: 'Aceite de motor; marca y cantidad no indicadas.',
+    3: '3 bujías: 1 de iridio y 2 normales. La nota menciona 2 Denso y 1 NGK.',
+    4: '4 bujías NGK de 2 electrodos (originales).',
+    5: 'Líquidos de frenos, embrague y corona; pastillas delanteras y traseras; fuelles de cardán y corona; pernos de parabrisas; ampolleta trasera.',
+    6: 'Retén exterior e interior de corona.',
+    7: '2 bobinas principales.',
+    8: 'Batería Motobatt MBYZ16H.',
+    9: 'Filtro de aire K&N.',
+    10: 'Aceite 20W-50 y filtro de aceite.',
+    11: 'Aceites de corona y caja; switch de freno delantero y switch de embrague.',
+    12: 'Aceite de corona y sensor de cambios.',
+    14: 'Neumático delantero Metzeler Karoo 3, 120/70-19.',
+    15: 'Tapas de ampolletas para los focos.',
+    16: 'Foco trasero LED.',
+    17: 'Focos delanteros LED de posición, baja y alta.',
+    18: 'Protector de foco.',
+    19: 'Aceite de motor y filtro de aceite.',
+    20: 'Bujías NGK y correa de alternador.',
+    21: 'Neumático trasero Avon TrailRider.',
+    22: 'DB Killer para escape.',
+    23: 'Neumático delantero Heidenau K76.',
+    24: 'Aceite de motor.',
+    25: 'Pastillas de freno traseras Brenta sintetizadas y filtro de aceite.',
+    26: 'Disco de embrague y retén original BMW.',
+    27: 'Retén de eje compensador.',
+    28: 'Tensor de correa de distribución del cilindro derecho.',
+    29: 'Pernos originales del subchasis.',
+    31: 'Pastillas de freno traseras (la nota indica que el precio se registró antes).',
+    33: 'Fuelle original BMW para caja de cambios.',
+    34: 'Puño derecho.',
+    35: 'Líquido de frenos.',
+    36: 'Aceite de motor.',
+    37: 'Retén de cigüeñal.',
+    38: 'Golilla del tensor de distribución.',
+    40: 'Empaquetaduras de cilindros.',
+    41: 'Líquido de corona.',
+    42: 'Fuelles traseros.',
+    43: 'Rodamientos de rueda delantera.',
+    44: 'Llanta delantera de rayos (abono; queda saldo pendiente según la nota).',
+    45: 'Neblineros/accesorios eléctricos.',
+    46: 'Neblineros, toma USB y bocina de aire.',
+    47: 'Limpiadores K&N para filtro de aire.',
+    48: 'Bomba de bencina Bosch.',
+    49: 'Cuerpo de aceleración izquierdo.',
+    52: 'Aceite de corona Liqui Moly.'
+  };
+  const summaryByCsvRow = {
+    5: 'Mantención de frenos, embrague, corona, fuelles y luz trasera',
+    6: 'Cambio de retenes de corona',
+    26: 'Cambio de embrague y retén de eje',
+    28: 'Cambio de tensor de distribución (cilindro derecho)',
+    29: 'Instalación de pernos del subchasis',
+    32: 'Inspección de fuelles de corona y basculante',
+    45: 'Renovación eléctrica de accesorios',
+    46: 'Renovación eléctrica, neblineros, USB y bocina',
+    50: 'Mano de obra en bomba, aceleración, amortiguador e inyectores',
+    51: 'Reparación de amortiguador trasero'
+  };
+  const workByCsvRow = {
+    51: 'Reparación de amortiguador trasero (clasificado desde la nota del CSV).'
+  };
+  const monthNumbers = {
+    enero: '01',
+    febrero: '02',
+    marzo: '03',
+    abril: '04',
+    mayo: '05',
+    junio: '06',
+    julio: '07',
+    agosto: '08',
+    septiembre: '09',
+    octubre: '10',
+    noviembre: '11',
+    diciembre: '12'
+  };
+
+  function summarizeWork(value) {
+    const lines = value.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return 'Descripción clasificada desde las observaciones';
+    if (lines.length > 1) return `${lines[0]} y ${lines.length - 1} tareas más`;
+    const summary = lines[0].replace(/\s+/g, ' ');
+    return summary.length > 82 ? `${summary.slice(0, 79).trimEnd()}…` : summary;
+  }
+
+  function monthDiffersFromDate(date, month) {
+    const match = /^([a-záéíóú]+)\s+(\d{4})$/i.exec(month);
+    if (!match) return false;
+    const monthNumber = monthNumbers[match[1].toLowerCase()];
+    return !date || !monthNumber || date.slice(0, 7) !== `${match[2]}-${monthNumber}`;
+  }
+
+  const serviceRecords = csvHistory.map((row, index) => {
+    const [sourceDate, month, sourceMileage, work, creator, cost, sourceNotes] = row;
+    const date = parseCsvDate(sourceDate);
+    const rowNumber = index + 1;
+    const fullWork = workByCsvRow[rowNumber] || work;
+    const observations = [
+      sourceNotes,
+      monthDiffersFromDate(date, month) && `Mes informado en CSV: ${month}`,
+      sourceDate && !date && `Fecha original no interpretada: ${sourceDate}`
+    ].filter(Boolean).join('\n');
+    return {
+      id: `LZ233-${String(rowNumber).padStart(3, '0')}`,
+      plate: motorcycle.plate,
+      date,
+      owner: motorcycle.owner,
+      phone: motorcycle.phone,
+      email: '',
+      vehicle: motorcycle.vehicle,
+      chassis: '',
+      mileage: parseCsvMileage(sourceMileage),
+      creator: creator || 'No indicado',
+      creatorId: 'csv-import',
+      summary: summaryByCsvRow[rowNumber] || summarizeWork(fullWork),
+      work: fullWork,
+      supplies: suppliesByCsvRow[rowNumber] || '',
+      notes: observations,
+      cost,
+      sourceMonth: month,
+      csvRow: rowNumber
+    };
+  }).sort(compareServiceRecords);
+
+  const searchInput = document.getElementById('plate-search');
+  const clearButton = document.getElementById('clear-search');
+  const listElement = document.getElementById('jobs-list');
+  const emptyState = document.getElementById('empty-state');
+  const initialState = document.getElementById('initial-state');
+  const workspaceElement = document.querySelector('.workspace');
+  const vehicleView = document.getElementById('vehicle-view');
+  const historyList = document.getElementById('history-list');
+  const detailView = document.getElementById('detail-view');
+  const noSelection = document.getElementById('no-selection');
+  const roleSelect = document.getElementById('demo-role');
+  const profileName = document.getElementById('profile-name');
+  const profileAvatar = document.getElementById('profile-avatar');
+  const jobDialog = document.getElementById('job-dialog');
+  const jobForm = document.getElementById('job-form');
+  const historyPageSize = 10;
+  let currentRole = 'ADMIN';
+  let currentView = 'search';
+  let historyPage = 0;
+  let selectedServiceId = '';
+  let editingJobId = null;
+  let nextDemoNumber = csvHistory.length + 1;
+
+  function normalizePlate(value) {
+    return String(value || '').toUpperCase().replace(/[\s-]/g, '');
+  }
+
+  function formatDate(value) {
+    if (!value) return 'Sin información';
+    const parts = value.split('-');
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+
+  function safeText(elementId, value, fallback = 'Sin información') {
+    document.getElementById(elementId).textContent = value || fallback;
+  }
+
+  function currentUserName() {
+    return currentRole === 'ADMIN' ? 'Matías · Admin demo' : 'Marco · Mecánico demo';
+  }
+
+  function currentUserId() {
+    return currentRole === 'ADMIN' ? 'demo-matias' : 'demo-marco';
+  }
+
+  function canEdit(job) {
+    return currentRole === 'ADMIN' || job.creatorId === currentUserId();
+  }
+
+  function selectedService() {
+    return serviceRecords.find((record) => record.id === selectedServiceId);
+  }
+
+  function renderSearch() {
+    currentView = 'search';
+    workspaceElement.classList.remove('page-focus');
+    const query = normalizePlate(searchInput.value);
+    const hasMatch = Boolean(query) && normalizePlate(motorcycle.plate).includes(query);
+
+    document.getElementById('vehicle-count').textContent = String(hasMatch ? 1 : 0);
+    document.getElementById('results-label').textContent = query ? `${hasMatch ? 1 : 0} vehículo${hasMatch ? '' : 's'}` : '';
+    document.getElementById('history-total').textContent = String(serviceRecords.length);
+    clearButton.hidden = !searchInput.value;
+    listElement.replaceChildren();
+
+    if (hasMatch) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'job-item';
+      button.innerHTML = '<span class="job-item-top"><span class="job-plate"></span><span class="job-date"></span></span><span class="job-owner"></span><span class="job-vehicle"></span>';
+      button.querySelector('.job-plate').textContent = motorcycle.plate;
+      button.querySelector('.job-date').textContent = `${serviceRecords.length} servicios`;
+      button.querySelector('.job-owner').textContent = motorcycle.owner;
+      button.querySelector('.job-vehicle').textContent = motorcycle.vehicle;
+      button.addEventListener('click', showVehicleHistory);
+      listElement.appendChild(button);
+    }
+
+    emptyState.hidden = hasMatch || !query;
+    initialState.hidden = Boolean(query) || hasMatch;
+    vehicleView.hidden = true;
+    detailView.hidden = true;
+    noSelection.hidden = false;
+  }
+
+  function showVehicleHistory(resetPage = true) {
+    currentView = 'history';
+    if (resetPage) historyPage = 0;
+    workspaceElement.classList.add('page-focus');
+    vehicleView.hidden = false;
+    detailView.hidden = true;
+    noSelection.hidden = true;
+    safeText('vehicle-contact-name', motorcycle.owner);
+    safeText('vehicle-contact-phone', motorcycle.phone);
+    safeText('vehicle-plate', motorcycle.plate);
+    safeText('vehicle-name', motorcycle.vehicle);
+    safeText('vehicle-history-count', `${serviceRecords.length} servicios`);
+    safeText('vehicle-plate-banner', motorcycle.plate);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const pageCount = Math.max(1, Math.ceil(serviceRecords.length / historyPageSize));
+    historyPage = Math.min(historyPage, pageCount - 1);
+    document.getElementById('history-total').textContent = String(serviceRecords.length);
+    const firstIndex = historyPage * historyPageSize;
+    const pageRecords = serviceRecords.slice(firstIndex, firstIndex + historyPageSize);
+    historyList.replaceChildren();
+
+    pageRecords.forEach((record) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'history-item';
+      button.setAttribute('aria-label', `${formatDate(record.date)}, ${record.summary}, ${record.creator}`);
+
+      const metadata = document.createElement('span');
+      metadata.className = 'history-item-meta';
+      const date = document.createElement('strong');
+      date.textContent = formatDate(record.date);
+      const mileage = document.createElement('span');
+      mileage.textContent = record.mileage === null ? 'Kilometraje no indicado' : `${record.mileage.toLocaleString('es-CL')} km`;
+      metadata.append(date, mileage);
+
+      const summary = document.createElement('span');
+      summary.className = 'history-item-summary';
+      summary.textContent = record.summary;
+      const mechanic = document.createElement('span');
+      mechanic.className = 'history-item-mechanic';
+      mechanic.textContent = `Realizado por: ${record.creator}`;
+
+      button.append(metadata, summary, mechanic);
+      button.addEventListener('click', () => showServiceDetail(record));
+      historyList.appendChild(button);
+    });
+
+    document.getElementById('history-page-label').textContent = `Página ${historyPage + 1} de ${pageCount}`;
+    document.getElementById('history-prev').disabled = historyPage === 0;
+    document.getElementById('history-next').disabled = historyPage >= pageCount - 1;
+  }
+
+  function showServiceDetail(record) {
+    currentView = 'detail';
+    selectedServiceId = record.id;
+    workspaceElement.classList.add('page-focus');
+    vehicleView.hidden = true;
+    detailView.hidden = false;
+    noSelection.hidden = true;
+
+    safeText('service-id', record.id);
+    safeText('service-contact-name', record.owner);
+    safeText('service-contact-phone', record.phone);
+    safeText('service-date', formatDate(record.date));
+    safeText('service-plate', record.plate);
+    safeText('service-vehicle', record.vehicle);
+    safeText('service-mileage', record.mileage === null ? '' : `${record.mileage.toLocaleString('es-CL')} km`);
+    safeText('service-mechanic', record.creator);
+    safeText('service-cost', record.cost);
+    safeText('service-summary', record.summary);
+    safeText('service-work', record.work);
+    safeText('service-supplies', record.supplies, 'No se identificaron insumos explícitos en el CSV.');
+    safeText('service-observations', record.notes, 'Sin observaciones en el CSV.');
+
+    const editButton = document.getElementById('edit-job-button');
+    editButton.hidden = !canEdit(record);
+    editButton.title = canEdit(record) ? 'Editar este registro local' : 'En esta simulación, el mecánico solo edita trabajos propios';
+    document.getElementById('delete-job-button').hidden = currentRole !== 'ADMIN';
+  }
+
+  function openJobDialog(job) {
+    editingJobId = job ? job.id : null;
+    jobForm.reset();
+    document.getElementById('job-dialog-title').textContent = job ? 'Editar servicio local' : 'Nuevo servicio local';
+    const dateField = jobForm.elements.namedItem('date');
+    const mileageField = jobForm.elements.namedItem('mileage');
+    dateField.required = !job || Boolean(job.date);
+    mileageField.required = Boolean(job && job.mileage !== null);
+    dateField.value = job ? job.date : '';
+    mileageField.value = job ? (job.mileage === null ? '' : job.mileage) : '';
+    if (job) {
+      ['plate', 'owner', 'phone', 'vehicle', 'work', 'supplies', 'notes', 'cost'].forEach((field) => {
+        jobForm.elements.namedItem(field).value = job[field] || '';
+      });
+    } else {
+      jobForm.elements.namedItem('plate').value = motorcycle.plate;
+      jobForm.elements.namedItem('owner').value = motorcycle.owner;
+      jobForm.elements.namedItem('phone').value = motorcycle.phone;
+      jobForm.elements.namedItem('vehicle').value = motorcycle.vehicle;
+      jobForm.elements.namedItem('work').value = '';
+      jobForm.elements.namedItem('supplies').value = '';
+      jobForm.elements.namedItem('notes').value = '';
+      jobForm.elements.namedItem('cost').value = '';
+    }
+    jobDialog.showModal();
+  }
+
+  function refreshCurrentView() {
+    if (currentView === 'search') {
+      renderSearch();
+      return;
+    }
+    if (currentView === 'history') {
+      vehicleView.hidden = false;
+      detailView.hidden = true;
+      noSelection.hidden = true;
+      renderHistory();
+      return;
+    }
+    const record = selectedService();
+    if (record) showServiceDetail(record);
+    else showVehicleHistory(false);
+  }
+
+  roleSelect.addEventListener('change', () => {
+    currentRole = roleSelect.value;
+    profileName.textContent = currentRole === 'ADMIN' ? 'Matías · Admin' : 'Marco · Mecánico';
+    profileAvatar.textContent = currentRole === 'ADMIN' ? 'MT' : 'MR';
+    refreshCurrentView();
+  });
+  searchInput.addEventListener('input', renderSearch);
+  clearButton.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.focus();
+    renderSearch();
+  });
+  document.getElementById('new-job-button').addEventListener('click', () => openJobDialog(null));
+  document.getElementById('new-service-button').addEventListener('click', () => openJobDialog(null));
+  document.getElementById('back-to-search').addEventListener('click', renderSearch);
+  document.getElementById('back-to-history').addEventListener('click', () => showVehicleHistory(false));
+  document.getElementById('history-prev').addEventListener('click', () => {
+    historyPage = Math.max(0, historyPage - 1);
+    renderHistory();
+  });
+  document.getElementById('history-next').addEventListener('click', () => {
+    historyPage += 1;
+    renderHistory();
+  });
+  document.getElementById('edit-job-button').addEventListener('click', () => {
+    const job = selectedService();
+    if (job && canEdit(job)) openJobDialog(job);
+  });
+  document.getElementById('delete-job-button').addEventListener('click', () => {
+    const job = selectedService();
+    if (currentRole !== 'ADMIN' || !job) return;
+    if (!window.confirm(`¿Quitar el registro local ${job.id} de esta vista?`)) return;
+    serviceRecords.splice(serviceRecords.findIndex((entry) => entry.id === job.id), 1);
+    selectedServiceId = '';
+    showVehicleHistory(false);
+  });
+  document.getElementById('close-job-dialog').addEventListener('click', () => jobDialog.close());
+  document.getElementById('cancel-job-dialog').addEventListener('click', () => jobDialog.close());
+  jobForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(jobForm).entries());
+    const job = editingJobId ? selectedService() : null;
+    const mileage = values.mileage === '' ? null : Number(values.mileage);
+    if (job && !canEdit(job)) return;
+    if (job) {
+      Object.assign(job, values, { mileage, summary: summarizeWork(values.work) });
+    } else {
+      const nextId = `${motorcycle.plate}-${String(nextDemoNumber).padStart(3, '0')}`;
+      nextDemoNumber += 1;
+      const newRecord = {
+        id: nextId,
+        plate: motorcycle.plate,
+        date: values.date,
+        owner: values.owner,
+        phone: values.phone,
+        email: '',
+        vehicle: values.vehicle,
+        chassis: '',
+        mileage,
+        creator: currentUserName(),
+        creatorId: currentUserId(),
+        summary: summarizeWork(values.work),
+        work: values.work,
+        supplies: values.supplies,
+        notes: values.notes,
+        cost: values.cost,
+        csvRow: csvHistory.length + nextDemoNumber
+      };
+      serviceRecords.push(newRecord);
+      serviceRecords.sort(compareServiceRecords);
+      showServiceDetail(newRecord);
+    }
+    jobDialog.close();
+    if (job) showServiceDetail(job);
+  });
+  document.getElementById('print-button').addEventListener('click', () => window.print());
+
+  renderSearch();
+})();
+</script>
+  </body>
+</html>
