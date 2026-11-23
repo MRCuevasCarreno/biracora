@@ -4,9 +4,12 @@ const APP_CONFIG = Object.freeze({
 });
 
 function doGet() {
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('Bitácora Mecánica — Demo')
+  const template = HtmlService.createTemplateFromFile('index');
+  const properties = PropertiesService.getScriptProperties();
+  template.supabaseUrl = properties.getProperty('SUPABASE_URL') || '';
+  template.supabasePublishableKey = properties.getProperty('SUPABASE_PUBLISHABLE_KEY') || '';
+  return template.evaluate()
+    .setTitle('Bitácora Mecánica — Acceso')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 

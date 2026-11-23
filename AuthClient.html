@@ -1,0 +1,352 @@
+(() => {
+  'use strict';
+
+  const config = window.BITACORA_SUPABASE_CONFIG || {};
+  const shell = document.getElementById('auth-shell');
+  const loginView = document.getElementById('login-view');
+  const sessionView = document.getElementById('session-view');
+  const loginForm = document.getElementById('login-form');
+  const vehicleForm = document.getElementById('vehicle-form');
+  const jobForm = document.getElementById('job-form');
+  const loginButton = document.getElementById('login-button');
+  const logoutButton = document.getElementById('logout-button');
+  const vehicleSubmit = document.getElementById('vehicle-submit');
+  const jobSubmit = document.getElementById('job-submit');
+  const jobVehicle = document.getElementById('job-vehicle');
+  const statusElement = document.getElementById('auth-status');
+  const sessionEmail = document.getElementById('session-email');
+  const sessionRole = document.getElementById('session-role');
+  const vehiclesList = document.getElementById('vehicles-list');
+  const jobsList = document.getElementById('jobs-list');
+  const vehiclesEmpty = document.getElementById('vehicles-empty');
+  const jobsEmpty = document.getElementById('jobs-empty');
+  let supabaseClient = null;
+  let sessionVersion = 0;
+  let jobFormBusy = false;
+  let vehicles = [];
+
+  function setStatus(message, kind) {
+    statusElement.textContent = message;
+    statusElement.dataset.kind = kind || 'info';
+    statusElement.hidden = !message;
+  }
+
+  function setBusy(busy) {
+    loginButton.disabled = busy || !supabaseClient;
+    loginButton.textContent = busy ? 'Verificando…' : 'Iniciar sesión';
+    logoutButton.disabled = busy;
+  }
+
+  function setFormBusy(form, button, busy) {
+    if (form === jobForm) jobFormBusy = busy;
+    Array.from(form.elements).forEach((element) => {
+      element.disabled = busy;
+    });
+    button.textContent = busy ? 'Guardando…' : button.dataset.label;
+    updateJobAvailability();
+  }
+
+  function updateJobAvailability() {
+    jobSubmit.disabled = !supabaseClient || vehicles.length === 0 || jobFormBusy;
+    jobVehicle.disabled = vehicles.length === 0 || jobFormBusy;
+  }
+
+  function localDateValue() {
+    const date = new Date();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+  }
+
+  function showLogin() {
+    shell.classList.remove('is-session');
+    loginView.hidden = false;
+    sessionView.hidden = true;
+    vehicles = [];
+    vehiclesList.replaceChildren();
+    jobsList.replaceChildren();
+    setBusy(false);
+    updateJobAvailability();
+  }
+
+  function showSession(user, role) {
+    loginForm.reset();
+    sessionEmail.textContent = user.email || 'Cuenta autenticada';
+    sessionRole.textContent = role === 'ADMIN' ? 'Administrador' : 'Mecánico';
+    shell.classList.add('is-session');
+    loginView.hidden = true;
+    sessionView.hidden = false;
+  }
+
+  function appendRecord(list, title, detail) {
+    const item = document.createElement('li');
+    const heading = document.createElement('strong');
+    const description = document.createElement('span');
+    heading.textContent = title;
+    description.textContent = detail;
+    item.append(heading, description);
+    list.append(item);
+  }
+
+  function renderVehicles(records) {
+    vehicles = records;
+    vehiclesList.replaceChildren();
+    jobVehicle.replaceChildren();
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = vehicles.length ? 'Selecciona un vehículo' : 'Registra un vehículo primero';
+    jobVehicle.append(placeholder);
+
+    vehicles.forEach((vehicle) => {
+      const option = document.createElement('option');
+      option.value = vehicle.id;
+      option.textContent = `${vehicle.plate} · ${vehicle.make} ${vehicle.model}`;
+      jobVehicle.append(option);
+      appendRecord(
+        vehiclesList,
+        `${vehicle.plate} · ${vehicle.make} ${vehicle.model}`,
+        vehicle.customer_name
+      );
+    });
+    vehiclesEmpty.hidden = vehicles.length > 0;
+    updateJobAvailability();
+  }
+
+  function renderJobs(records) {
+    jobsList.replaceChildren();
+    records.forEach((job) => {
+      const date = new Date(`${job.work_date}T00:00:00`).toLocaleDateString('es-CL');
+      appendRecord(
+        jobsList,
+        `${date} · ${job.plate} · ${job.vehicle}`,
+        `${job.customer_name} — ${job.work_description}`
+      );
+    });
+    jobsEmpty.hidden = records.length > 0;
+  }
+
+  async function refreshRecords() {
+    const [vehicleResult, jobResult] = await Promise.all([
+      supabaseClient
+        .from('vehicles')
+        .select('id, plate, make, model, customer_name, model_year, chassis, contact_phone, contact_email')
+        .order('created_at', { ascending: false }),
+      supabaseClient
+        .from('jobs')
+        .select('id, vehicle_id, plate, work_date, customer_name, vehicle, work_description')
+        .order('work_date', { ascending: false })
+        .limit(50)
+    ]);
+
+    if (vehicleResult.error) throw vehicleResult.error;
+    if (jobResult.error) throw jobResult.error;
+    renderVehicles(vehicleResult.data || []);
+    renderJobs(jobResult.data || []);
+  }
+
+  async function applySession(session) {
+    const version = ++sessionVersion;
+    if (!session) {
+      showLogin();
+      return;
+    }
+
+    loginView.hidden = true;
+    sessionView.hidden = true;
+    setStatus('Validando el perfil y el rol…', 'info');
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (version !== sessionVersion) return;
+      if (error) throw error;
+      if (!data || !['ADMIN', 'MECHANIC'].includes(data.role)) {
+        throw new Error('El perfil no tiene un rol autorizado.');
+      }
+
+      showSession(session.user, data.role);
+      await refreshRecords();
+      if (version === sessionVersion) setStatus('', 'info');
+    } catch (error) {
+      if (version !== sessionVersion) return;
+      loginView.hidden = false;
+      sessionView.hidden = true;
+      setStatus(`No se pudo validar el acceso: ${error.message}`, 'error');
+      let signOutError = null;
+      try {
+        const result = await supabaseClient.auth.signOut();
+        signOutError = result.error;
+      } catch (signOutFailure) {
+        signOutError = signOutFailure;
+      }
+      if (signOutError) {
+        setStatus(`No se pudo validar el acceso ni cerrar la sesión: ${signOutError.message}`, 'error');
+      }
+    }
+  }
+
+  if (!config.url || !config.publishableKey) {
+    setStatus('Acceso bloqueado: configura SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY en las propiedades del proyecto de Apps Script.', 'warning');
+    loginButton.disabled = true;
+    return;
+  }
+
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    setStatus('No se pudo cargar el cliente de autenticación. Revisa la conexión al CDN configurado.', 'error');
+    loginButton.disabled = true;
+    return;
+  }
+
+  try {
+    supabaseClient = window.supabase.createClient(config.url, config.publishableKey, {
+      auth: {
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        persistSession: true
+      }
+    });
+  } catch (error) {
+    setStatus(`No se pudo inicializar la autenticación: ${error.message}`, 'error');
+    loginButton.disabled = true;
+    return;
+  }
+
+  vehicleSubmit.dataset.label = vehicleSubmit.textContent;
+  jobSubmit.dataset.label = jobSubmit.textContent;
+  jobForm.elements.namedItem('work_date').value = localDateValue();
+  updateJobAvailability();
+
+  loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setStatus('', 'info');
+    setBusy(true);
+
+    const email = loginForm.elements.namedItem('email').value.trim();
+    const passwordField = loginForm.elements.namedItem('password');
+    const password = passwordField.value;
+    passwordField.value = '';
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        setStatus(`No se pudo iniciar sesión: ${error.message}`, 'error');
+        return;
+      }
+      if (!data.session) throw new Error('No se recibió una sesión autenticada.');
+      await applySession(data.session);
+    } catch (error) {
+      setStatus(`No se pudo iniciar sesión: ${error.message}`, 'error');
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  vehicleForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setFormBusy(vehicleForm, vehicleSubmit, true);
+    setStatus('', 'info');
+    const form = new FormData(vehicleForm);
+    const modelYear = form.get('model_year');
+    let vehicleCreated = false;
+    try {
+      const { error } = await supabaseClient.from('vehicles').insert({
+        plate: form.get('plate').trim().toUpperCase(),
+        make: form.get('make').trim(),
+        model: form.get('model').trim(),
+        model_year: modelYear ? Number(modelYear) : null,
+        chassis: form.get('chassis').trim(),
+        customer_name: form.get('customer_name').trim(),
+        contact_phone: form.get('contact_phone').trim(),
+        contact_email: form.get('contact_email').trim()
+      });
+      if (error) throw error;
+      vehicleCreated = true;
+      vehicleForm.reset();
+      await refreshRecords();
+      setStatus('Vehículo registrado.', 'success');
+    } catch (error) {
+      const message = vehicleCreated
+        ? `El vehículo se guardó, pero no se pudo actualizar la lista: ${error.message}`
+        : `No se pudo registrar el vehículo: ${error.message}`;
+      setStatus(message, 'error');
+    } finally {
+      setFormBusy(vehicleForm, vehicleSubmit, false);
+    }
+  });
+
+  jobForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(jobForm);
+    const vehicle = vehicles.find((record) => record.id === form.get('vehicle_id'));
+    if (!vehicle) {
+      setStatus('Selecciona un vehículo registrado.', 'error');
+      return;
+    }
+    setFormBusy(jobForm, jobSubmit, true);
+    setStatus('', 'info');
+    let jobCreated = false;
+    try {
+      const { error } = await supabaseClient.from('jobs').insert({
+        vehicle_id: vehicle.id,
+        plate: vehicle.plate,
+        work_date: form.get('work_date'),
+        customer_name: vehicle.customer_name,
+        contact_phone: vehicle.contact_phone,
+        contact_email: vehicle.contact_email,
+        vehicle: `${vehicle.make} ${vehicle.model}`,
+        chassis: vehicle.chassis,
+        mileage: Number(form.get('mileage')),
+        work_description: form.get('work_description').trim(),
+        supplies: form.get('supplies').trim(),
+        notes: form.get('notes').trim()
+      });
+      if (error) throw error;
+      jobCreated = true;
+      const selectedVehicleId = vehicle.id;
+      jobForm.reset();
+      jobForm.elements.namedItem('vehicle_id').value = selectedVehicleId;
+      jobForm.elements.namedItem('work_date').value = localDateValue();
+      jobForm.elements.namedItem('mileage').value = '0';
+      await refreshRecords();
+      setStatus('Orden de trabajo creada.', 'success');
+    } catch (error) {
+      const message = jobCreated
+        ? `La orden se guardó, pero no se pudo actualizar la lista: ${error.message}`
+        : `No se pudo crear la orden: ${error.message}`;
+      setStatus(message, 'error');
+    } finally {
+      setFormBusy(jobForm, jobSubmit, false);
+    }
+  });
+
+  logoutButton.addEventListener('click', async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        setStatus(`No se pudo cerrar la sesión: ${error.message}`, 'error');
+        setBusy(false);
+      }
+    } catch (error) {
+      setStatus(`No se pudo cerrar la sesión: ${error.message}`, 'error');
+      setBusy(false);
+    }
+  });
+
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    window.setTimeout(() => applySession(session), 0);
+  });
+
+  supabaseClient.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      setStatus(`No se pudo recuperar la sesión: ${error.message}`, 'error');
+      return;
+    }
+    return applySession(data.session);
+  }).catch((error) => {
+    setStatus(`No se pudo recuperar la sesión: ${error.message}`, 'error');
+  });
+})();

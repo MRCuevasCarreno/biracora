@@ -3,256 +3,139 @@
   <head>
     <base target="_top">
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bitácora Mecánica — Acceso</title>
     <?!= include('Styles'); ?>
   </head>
-  <body>
-    <header class="app-header app-chrome">
-      <a class="brand" href="#" aria-label="Bitácora Mecánica, inicio">
+  <body class="auth-page">
+    <main id="auth-shell" class="auth-shell">
+      <header class="auth-brand">
         <span class="brand-mark" aria-hidden="true">BM</span>
         <span class="brand-copy">
           <strong>Bitácora Mecánica</strong>
-          <span>Marco “Pelao” Cifuentes</span>
+          <span>Acceso al taller</span>
         </span>
-      </a>
-      <div class="header-right">
-        <span class="demo-pill"><span class="status-dot"></span> PRUEBA LOCAL · HISTORIAL IMPORTADO</span>
-        <label class="demo-user" for="demo-role">
-          <span class="profile-avatar" id="profile-avatar">MT</span>
-          <span class="demo-user-copy"><strong id="profile-name">Matías · Admin</strong><small>Simulación visual de rol</small></span>
-          <select id="demo-role" aria-label="Cambiar rol de demostración">
-            <option value="ADMIN">Matías · Admin</option>
-            <option value="MECHANIC">Marco · Mecánico</option>
-          </select>
-        </label>
-      </div>
-    </header>
+      </header>
 
-    <main>
-      <section class="security-banner" role="status">
-        <span class="banner-icon" aria-hidden="true">!</span>
-        <div>
-          <strong>Vista local: no se conecta a Supabase, Sheets ni Drive.</strong>
-          <p>Incluye el historial que compartiste para tu BMW R1200GS. Está embebido en Client.html; no hagas commit/push ni compartas este proyecto sin retirar esos datos. Los cambios de la maqueta se pierden al recargar.</p>
+      <section id="login-view" class="auth-card" aria-labelledby="login-heading">
+        <h1 id="login-heading">Iniciar sesión</h1>
+        <p class="auth-copy">Ingresa con el correo y la contraseña de tu cuenta autorizada.</p>
+        <form id="login-form" class="auth-form">
+          <label for="login-email">Correo electrónico
+            <input id="login-email" name="email" type="email" autocomplete="username" required>
+          </label>
+          <label for="login-password">Contraseña
+            <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button id="login-button" type="submit">Iniciar sesión</button>
+        </form>
+      </section>
+
+      <section id="session-view" class="auth-card auth-session" aria-labelledby="session-heading" hidden>
+        <header class="auth-session-heading">
+          <div>
+            <p class="eyebrow">BITÁCORA MECÁNICA</p>
+            <h1 id="session-heading">Taller</h1>
+            <p id="session-email"></p>
+            <p class="auth-role">Rol: <strong id="session-role"></strong></p>
+          </div>
+          <button id="logout-button" type="button">Cerrar sesión</button>
+        </header>
+
+        <div class="auth-data-grid">
+          <section class="auth-data-card" aria-labelledby="vehicle-heading">
+            <h2 id="vehicle-heading">Registrar vehículo</h2>
+            <form id="vehicle-form" class="auth-data-form">
+              <label for="vehicle-plate">Patente
+                <input id="vehicle-plate" name="plate" maxlength="12" required>
+              </label>
+              <div class="auth-field-row">
+                <label for="vehicle-make">Marca
+                  <input id="vehicle-make" name="make" maxlength="100" required>
+                </label>
+                <label for="vehicle-model">Modelo
+                  <input id="vehicle-model" name="model" maxlength="100" required>
+                </label>
+              </div>
+              <div class="auth-field-row">
+                <label for="vehicle-year">Año
+                  <input id="vehicle-year" name="model_year" type="number" min="1886" max="2100">
+                </label>
+                <label for="vehicle-chassis">Chasis
+                  <input id="vehicle-chassis" name="chassis" maxlength="100">
+                </label>
+              </div>
+              <label for="vehicle-customer">Cliente
+                <input id="vehicle-customer" name="customer_name" maxlength="200" required>
+              </label>
+              <div class="auth-field-row">
+                <label for="vehicle-phone">Teléfono
+                  <input id="vehicle-phone" name="contact_phone" type="tel" maxlength="40">
+                </label>
+                <label for="vehicle-email">Correo del cliente
+                  <input id="vehicle-email" name="contact_email" type="email" maxlength="254">
+                </label>
+              </div>
+              <button id="vehicle-submit" type="submit">Guardar vehículo</button>
+            </form>
+          </section>
+
+          <section class="auth-data-card" aria-labelledby="job-heading">
+            <h2 id="job-heading">Crear orden de trabajo</h2>
+            <form id="job-form" class="auth-data-form">
+              <label for="job-vehicle">Vehículo
+                <select id="job-vehicle" name="vehicle_id" required>
+                  <option value="">Selecciona un vehículo</option>
+                </select>
+              </label>
+              <div class="auth-field-row">
+                <label for="job-date">Fecha
+                  <input id="job-date" name="work_date" type="date" required>
+                </label>
+                <label for="job-mileage">Kilometraje
+                  <input id="job-mileage" name="mileage" type="number" min="0" step="1" value="0" required>
+                </label>
+              </div>
+              <label for="job-description">Trabajo realizado
+                <textarea id="job-description" name="work_description" rows="3" maxlength="10000" required></textarea>
+              </label>
+              <label for="job-supplies">Insumos
+                <textarea id="job-supplies" name="supplies" rows="2" maxlength="5000"></textarea>
+              </label>
+              <label for="job-notes">Observaciones
+                <textarea id="job-notes" name="notes" rows="2" maxlength="5000"></textarea>
+              </label>
+              <button id="job-submit" type="submit">Crear orden</button>
+            </form>
+          </section>
+        </div>
+
+        <div class="auth-data-grid">
+          <section class="auth-data-card" aria-labelledby="vehicles-list-heading">
+            <h2 id="vehicles-list-heading">Vehículos registrados</h2>
+            <ul id="vehicles-list" class="auth-record-list"></ul>
+            <p id="vehicles-empty" class="auth-empty" hidden>No hay vehículos registrados.</p>
+          </section>
+          <section class="auth-data-card" aria-labelledby="jobs-list-heading">
+            <h2 id="jobs-list-heading">Órdenes recientes</h2>
+            <ul id="jobs-list" class="auth-record-list"></ul>
+            <p id="jobs-empty" class="auth-empty" hidden>No hay órdenes registradas.</p>
+          </section>
         </div>
       </section>
 
-      <div class="workspace">
-        <aside class="jobs-panel app-chrome" aria-label="Búsqueda de vehículos">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">TALLER MECÁNICO</p>
-              <h1>Vehículos</h1>
-            </div>
-            <span class="count-badge" id="vehicle-count">0</span>
-          </div>
-
-          <label class="search-label" for="plate-search">Buscar por patente</label>
-          <div class="search-box">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.5 4.5"></path></svg>
-            <input id="plate-search" type="search" placeholder="Ej. LZ233" autocomplete="off">
-            <button id="clear-search" class="clear-search" type="button" aria-label="Limpiar búsqueda" hidden>×</button>
-          </div>
-          <p class="hint">Escribe parte de la patente; ignora mayúsculas, espacios y guiones.</p>
-
-          <button id="new-job-button" class="button button-primary new-job" type="button">
-            <span aria-hidden="true">＋</span> Nuevo servicio
-          </button>
-          <p class="disabled-note">Prueba local · sin guardar ni enviar datos.</p>
-
-          <div class="list-heading">
-            <span>VEHÍCULOS</span>
-            <span id="results-label"></span>
-          </div>
-          <div id="jobs-list" class="jobs-list" aria-live="polite"></div>
-          <p id="empty-state" class="empty-state" hidden>
-            <span class="empty-icon" aria-hidden="true">⌕</span>
-            <strong>No encontramos coincidencias</strong>
-            <span>Prueba con otros caracteres de la patente.</span>
-          </p>
-          <p id="initial-state" class="initial-state" hidden>Busca una patente para ver el vehículo.</p>
-        </aside>
-
-        <section class="detail-panel" aria-label="Historial y detalle del servicio">
-          <div id="no-selection" class="no-selection app-chrome">
-            <span class="no-selection-icon" aria-hidden="true">⌕</span>
-            <h2>Busca una patente</h2>
-            <p>Escribe LZ233 para encontrar el vehículo y abrir su historial.</p>
-          </div>
-
-          <section id="vehicle-view" hidden>
-            <div class="detail-toolbar app-chrome">
-              <div class="breadcrumb"><span>Vehículos</span><span class="crumb-divider">/</span><strong id="vehicle-plate">—</strong></div>
-              <div class="toolbar-actions">
-                <button id="back-to-search" class="button button-light" type="button">Volver a resultados</button>
-                <button id="new-service-button" class="button button-primary" type="button">＋ Nuevo servicio</button>
-              </div>
-            </div>
-
-            <article class="work-order">
-              <header class="order-header">
-                <div>
-                  <p class="eyebrow">CONTACTO DEL VEHÍCULO</p>
-                  <h2 id="vehicle-contact-name">—</h2>
-                  <p id="vehicle-contact-phone" class="muted">—</p>
-                </div>
-                <div class="order-date">
-                  <span>HISTORIAL</span>
-                  <strong id="vehicle-history-count">—</strong>
-                </div>
-              </header>
-
-              <section class="plate-banner">
-                <div class="plate-icon" aria-hidden="true">
-                  <svg viewBox="0 0 32 32"><path d="M5 8h22a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z"></path><path d="M8 13h2m4 0h2m4 0h2m-14 6h16"></path></svg>
-                </div>
-                <div class="plate-main">
-                  <span>PATENTE</span>
-                  <strong id="vehicle-plate-banner">—</strong>
-                </div>
-                <div class="plate-divider"></div>
-                <div class="vehicle-main">
-                  <span>VEHÍCULO</span>
-                  <strong id="vehicle-name">—</strong>
-                </div>
-              </section>
-
-              <section class="history-section" aria-labelledby="history-heading">
-                <div class="history-heading">
-                  <div>
-                    <p class="eyebrow">MANTENCIONES Y TRABAJOS</p>
-                    <h2 id="history-heading">Historial de servicios</h2>
-                  </div>
-                  <span id="history-total" class="count-badge">52</span>
-                </div>
-                <div id="history-list" class="history-list"></div>
-                <nav class="history-pagination" aria-label="Paginación del historial">
-                  <button id="history-prev" class="button button-light" type="button">← Anterior</button>
-                  <span id="history-page-label" aria-live="polite"></span>
-                  <button id="history-next" class="button button-light" type="button">Siguiente →</button>
-                </nav>
-              </section>
-              <footer class="order-footer">
-                <span>Historial importado · Solo prueba local</span>
-                <span>Sin fotos cargadas</span>
-              </footer>
-            </article>
-          </section>
-
-          <div id="detail-view" hidden>
-            <div class="detail-toolbar app-chrome">
-              <button id="back-to-history" class="button button-light" type="button">← Volver al historial</button>
-              <div class="toolbar-actions">
-                <button id="edit-job-button" class="button button-light app-chrome" type="button">Editar</button>
-                <button id="delete-job-button" class="button button-danger app-chrome" type="button">Eliminar</button>
-                <button id="print-button" class="button button-primary print-button" type="button">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path><path d="M7 14h10v7H7zM18 11h.01"></path></svg>
-                  Imprimir orden
-                </button>
-              </div>
-            </div>
-
-            <article id="work-order" class="work-order">
-              <header class="order-header">
-                <div>
-                  <p class="eyebrow">DETALLE DEL SERVICIO <span id="service-id"></span></p>
-                  <h2 id="service-contact-name">—</h2>
-                  <p id="service-contact-phone" class="muted">—</p>
-                </div>
-                <div class="order-date">
-                  <span>FECHA DEL SERVICIO</span>
-                  <strong id="service-date">—</strong>
-                </div>
-              </header>
-
-              <section class="plate-banner">
-                <div class="plate-icon" aria-hidden="true">
-                  <svg viewBox="0 0 32 32"><path d="M5 8h22a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2Z"></path><path d="M8 13h2m4 0h2m4 0h2m-14 6h16"></path></svg>
-                </div>
-                <div class="plate-main">
-                  <span>PATENTE</span>
-                  <strong id="service-plate">—</strong>
-                </div>
-                <div class="plate-divider"></div>
-                <div class="vehicle-main">
-                  <span>VEHÍCULO</span>
-                  <strong id="service-vehicle">—</strong>
-                </div>
-              </section>
-
-              <section class="info-grid">
-                <div class="info-card">
-                  <span class="field-label">KILOMETRAJE</span>
-                  <strong id="service-mileage">—</strong>
-                </div>
-                <div class="info-card">
-                  <span class="field-label">MECÁNICO</span>
-                  <strong id="service-mechanic">—</strong>
-                </div>
-                <div class="info-card">
-                  <span class="field-label">COSTO REGISTRADO</span>
-                  <strong id="service-cost">—</strong>
-                </div>
-              </section>
-
-              <section class="work-section summary-section">
-                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Resumen</h3>
-                <p id="service-summary" class="section-copy"></p>
-              </section>
-
-              <section class="work-section">
-                <h3><span class="section-icon work-icon" aria-hidden="true">↗</span> Descripción completa</h3>
-                <p id="service-work" class="section-copy"></p>
-              </section>
-
-              <section class="work-section supplies-section">
-                <h3><span class="section-icon supplies-icon" aria-hidden="true">✓</span> Insumos identificados</h3>
-                <p id="service-supplies" class="section-copy"></p>
-              </section>
-
-              <section class="work-section notes-section">
-                <h3><span class="section-icon notes-icon" aria-hidden="true">≡</span> Observaciones</h3>
-                <p id="service-observations" class="section-copy"></p>
-              </section>
-
-              <footer class="order-footer">
-                <span>Detalle del historial importado · Solo prueba local</span>
-                <span>Los cambios no se guardan al recargar</span>
-              </footer>
-            </article>
-          </div>
-        </section>
-      </div>
+      <p id="auth-status" class="auth-status" role="status" aria-live="polite" hidden></p>
     </main>
 
-    <dialog id="job-dialog" class="job-dialog">
-      <form id="job-form" class="job-form">
-        <div class="dialog-heading">
-          <div>
-            <p class="eyebrow">SIMULACIÓN LOCAL</p>
-            <h2 id="job-dialog-title">Nuevo servicio</h2>
-          </div>
-          <button id="close-job-dialog" class="dialog-close" type="button" aria-label="Cerrar">×</button>
-        </div>
-        <p class="dialog-warning">El historial importado está en los archivos locales. Los cambios del formulario no se guardan ni envían; evita agregar datos sensibles.</p>
-        <div class="form-grid">
-          <label>Patente<input name="plate" required maxlength="12" placeholder="LZ233" readonly></label>
-          <label>Fecha<input name="date" type="date" required></label>
-          <label>Contacto<input name="owner" required maxlength="100" placeholder="Matias Cuevas"></label>
-          <label>Teléfono<input name="phone" maxlength="30" placeholder="+569 900 91 888"></label>
-          <label>Vehículo<input name="vehicle" required maxlength="100" placeholder="BMW R1200GS (2005)"></label>
-          <label>Kilometraje<input name="mileage" type="number" min="0" step="1"></label>
-          <label>Costo registrado<input name="cost" maxlength="30" placeholder="$0"></label>
-          <label class="form-wide">Trabajo realizado<textarea name="work" rows="3" maxlength="2000"></textarea></label>
-          <label class="form-wide">Insumos cambiados<textarea name="supplies" rows="2" maxlength="1000"></textarea></label>
-          <label class="form-wide">Observaciones<textarea name="notes" rows="2" maxlength="1000"></textarea></label>
-        </div>
-        <div class="dialog-actions">
-          <button id="cancel-job-dialog" class="button button-light" type="button">Cancelar</button>
-          <button class="button button-primary" type="submit">Guardar registro</button>
-        </div>
-      </form>
-    </dialog>
-
-    <script><?!= include('Client'); ?></script>
+    <script>
+      window.BITACORA_SUPABASE_CONFIG = {
+        url: <?!= JSON.stringify(supabaseUrl) ?>,
+        publishableKey: <?!= JSON.stringify(supabasePublishableKey) ?>
+      };
+    </script>
+    <? if (supabaseUrl && supabasePublishableKey) { ?>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <? } ?>
+    <script><?!= include('AuthClient'); ?></script>
   </body>
 </html>

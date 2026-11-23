@@ -28,6 +28,19 @@ exception
 end;
 $$;
 
+create function pg_temp.violates_unique(p_sql text)
+returns boolean
+language plpgsql
+as $$
+begin
+  execute p_sql;
+  return false;
+exception
+  when unique_violation then
+    return true;
+end;
+$$;
+
 create function pg_temp.affected_rows(p_sql text)
 returns integer
 language plpgsql
@@ -89,12 +102,34 @@ select is(
   'auth user metadata cannot grant ADMIN'
 );
 
+insert into public.vehicles (
+  id, plate, make, model, customer_name, created_by
+)
+values
+  (
+    '30000000-0000-0000-0000-000000000001',
+    'DE-MO-01',
+    'Marca ficticia 01',
+    'Modelo de prueba 01',
+    'Cliente ficticio 01',
+    '00000000-0000-0000-0000-000000000002'
+  ),
+  (
+    '30000000-0000-0000-0000-000000000002',
+    'DE-MO-02',
+    'Marca ficticia 02',
+    'Modelo de prueba 02',
+    'Cliente ficticio 02',
+    '00000000-0000-0000-0000-000000000001'
+  );
+
 insert into public.jobs (
-  id, plate, work_date, customer_name, vehicle, created_by
+  id, vehicle_id, plate, work_date, customer_name, vehicle, created_by
 )
 values
   (
     '10000000-0000-0000-0000-000000000001',
+    '30000000-0000-0000-0000-000000000001',
     'DE-MO-01',
     '2026-01-01',
     'Cliente ficticio 01',
@@ -103,6 +138,7 @@ values
   ),
   (
     '10000000-0000-0000-0000-000000000002',
+    '30000000-0000-0000-0000-000000000002',
     'DE-MO-02',
     '2026-01-02',
     'Cliente ficticio 02',
@@ -253,6 +289,12 @@ select ok(
   ),
   'anonymous direct job reads are denied'
 );
+select ok(
+  pg_temp.was_denied(
+    'select count(*) from public.vehicles'
+  ),
+  'anonymous direct vehicle reads are denied'
+);
 select is(
   (select count(*)::integer from storage.objects),
   0,
@@ -264,6 +306,7 @@ set local request.jwt.claim.sub = '00000000-0000-0000-0000-000000000002';
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
 
 select is((select count(*)::integer from public.jobs), 2, 'mechanic can list every job');
+select is((select count(*)::integer from public.vehicles), 2, 'mechanic can list every vehicle');
 select is((select count(*)::integer from public.job_photos), 2, 'mechanic can read photo metadata for every visible job');
 select is((select count(*)::integer from storage.objects where bucket_id = 'work-photos'), 2, 'mechanic can read files linked to photo metadata');
 select ok(
@@ -277,9 +320,10 @@ select ok(
 );
 
 insert into public.jobs (
-  plate, work_date, customer_name, vehicle
+  vehicle_id, plate, work_date, customer_name, vehicle
 )
 values (
+  '30000000-0000-0000-0000-000000000001',
   'DE-MO-03',
   '2026-01-03',
   'Cliente ficticio 03',
@@ -294,6 +338,95 @@ select is(
   ),
   '00000000-0000-0000-0000-000000000002'::uuid,
   'new job author comes from the authenticated identity'
+);
+
+insert into public.vehicles (
+  plate, make, model, model_year, chassis, customer_name, contact_phone, contact_email
+)
+values (
+  'DE-MO-03',
+  'Marca ficticia 03',
+  'Modelo de prueba 03',
+  2020,
+  '',
+  'Cliente ficticio 03',
+  '',
+  ''
+);
+
+select is(
+  (
+    select created_by
+    from public.vehicles
+    where plate = 'DE-MO-03'
+  ),
+  '00000000-0000-0000-0000-000000000002'::uuid,
+  'new vehicle author comes from the authenticated identity'
+);
+
+select ok(
+  pg_temp.violates_unique($command$
+    insert into public.vehicles (plate, make, model, customer_name)
+    values ('de mo 03', 'Marca duplicada', 'Modelo duplicado', 'Cliente ficticio')
+  $command$),
+  'vehicle plates are unique ignoring case, spaces, and hyphens'
+);
+
+select ok(
+  pg_temp.was_denied($command$
+    insert into public.jobs (plate, work_date, customer_name, vehicle)
+    values ('DE-MO-07', '2026-01-07', 'Cliente ficticio 07', 'Vehículo de prueba 07')
+  $command$),
+  'a job cannot be created without a vehicle'
+);
+
+select ok(
+  pg_temp.was_denied($command$
+    insert into public.vehicles (
+      id, plate, make, model, customer_name
+    )
+    values (
+      '30000000-0000-0000-0000-000000000003',
+      'DE-MO-08',
+      'Marca ficticia 08',
+      'Modelo de prueba 08',
+      'Cliente ficticio 08'
+    )
+  $command$),
+  'client cannot choose a vehicle ID'
+);
+
+select ok(
+  pg_temp.was_denied($command$
+    insert into public.vehicles (
+      plate, make, model, customer_name, created_by
+    )
+    values (
+      'DE-MO-09',
+      'Marca ficticia 09',
+      'Modelo de prueba 09',
+      'Cliente ficticio 09',
+      '00000000-0000-0000-0000-000000000001'
+    )
+  $command$),
+  'client cannot forge a vehicle author'
+);
+
+select ok(
+  pg_temp.was_denied($command$
+    update public.vehicles
+    set model = 'Modelo alterado'
+    where id = '30000000-0000-0000-0000-000000000002'
+    $command$),
+  'mechanic cannot edit vehicles'
+);
+
+select ok(
+  pg_temp.was_denied($command$
+    delete from public.vehicles
+    where id = '30000000-0000-0000-0000-000000000002'
+    $command$),
+  'mechanic cannot delete vehicles'
 );
 
 insert into public.job_photos (
@@ -406,6 +539,14 @@ select ok(
 );
 select ok(
   pg_temp.was_denied($command$
+    update public.jobs
+    set vehicle_id = '30000000-0000-0000-0000-000000000002'
+    where id = '10000000-0000-0000-0000-000000000001'
+  $command$),
+  'client cannot change a job vehicle'
+);
+select ok(
+  pg_temp.was_denied($command$
     update public.profiles
     set role = 'ADMIN'
     where id = '00000000-0000-0000-0000-000000000002'
@@ -466,10 +607,31 @@ set local role authenticated;
 set local request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
-insert into public.jobs (
-  plate, work_date, customer_name, vehicle
+insert into public.vehicles (
+  plate, make, model, customer_name
 )
 values (
+  'DE-MO-10',
+  'Marca ficticia 10',
+  'Modelo de prueba 10',
+  'Cliente ficticio 10'
+);
+
+select is(
+  (
+    select created_by
+    from public.vehicles
+    where plate = 'DE-MO-10'
+  ),
+  '00000000-0000-0000-0000-000000000001'::uuid,
+  'admin-created vehicle author comes from the authenticated identity'
+);
+
+insert into public.jobs (
+  vehicle_id, plate, work_date, customer_name, vehicle
+)
+values (
+  '30000000-0000-0000-0000-000000000002',
   'DE-MO-06',
   '2026-01-06',
   'Cliente ficticio 06',
@@ -503,6 +665,7 @@ insert into storage.objects (bucket_id, name)
 values ('work-photos', 'fixture/admin-added.jpg');
 
 select is((select count(*)::integer from public.jobs), 4, 'admin can list every job');
+select is((select count(*)::integer from public.vehicles), 4, 'admin can list every vehicle');
 select is((select count(*)::integer from public.job_photos), 4, 'admin can read every photo metadata row');
 select is((select count(*)::integer from storage.objects where bucket_id = 'work-photos'), 4, 'admin can read every linked photo file');
 select ok(
