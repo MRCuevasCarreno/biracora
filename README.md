@@ -4,7 +4,7 @@ Bitácora Mecánica. `local-preview-r1200gs.html` conserva el historial real com
 
 ## Arquitectura elegida para evaluar
 
-La aplicación usa Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojan en Supabase, no en el Drive personal de Matías. El código de cliente no se ha desplegado.
+La aplicación usa Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojan en Supabase, no en el Drive personal de Matías. La fuente de la aplicación se cargó al proyecto de Apps Script, pero no se creó ni actualizó un despliegue web.
 
 La matriz de permisos de la base de datos es:
 
@@ -24,18 +24,18 @@ Roles y autoría deben derivarse de la identidad autenticada en la base de datos
 ## Estado actual y límites
 
 - `local-preview-r1200gs.html` sigue siendo una demostración visual local con el historial importado; no es una aplicación con inicio de sesión. `Index.html` es la entrada de autenticación por correo y contraseña; `AuthClient.html` recupera la sesión persistente, valida el rol desde el perfil propio y permite cerrar sesión.
-- El acceso permanece bloqueado si faltan `SUPABASE_URL` o `SUPABASE_PUBLISHABLE_KEY` en las propiedades del proyecto de Apps Script. En esta sesión no se encontraron esas variables en el entorno ni valores en la vista previa local; las propiedades privadas de Apps Script no son inspeccionables desde este repositorio. No se comprobó ni se conectó ninguna cuenta remota.
+- El acceso permanece bloqueado si faltan `SUPABASE_URL` o `SUPABASE_PUBLISHABLE_KEY` en las propiedades del proyecto de Apps Script. En esta sesión no se encontraron esas variables en el entorno ni en `.env`; las propiedades privadas de Apps Script no se verificaron. La fuente se cargó al proyecto de Apps Script, pero no se conectó a Supabase ni se probaron credenciales.
 - `Client.html` conserva el historial importado y su separación revisada para la demostración local. No se incluye desde la entrada autenticada; las fechas ausentes o no interpretables y los kilometrajes vacíos se muestran sin inventar valores. La fecha `3/11/0201` se conserva en las observaciones como dato no interpretado.
 - Los resúmenes y la separación inicial entre trabajo, insumos y observaciones se prepararon localmente a partir del CSV. Las compras sin instalación explícita, los trabajos faltantes, los diagnósticos ambiguos y los resultados no registrados se señalan como “por confirmar”; los valores originales del CSV embebido se conservan. La instalación del DB Killer indicada en las observaciones también se muestra como trabajo. La maqueta no llama a un servicio de IA ni envía esos datos a terceros.
 - La pantalla autenticada consulta vehículos y órdenes, crea vehículos y crea órdenes vinculadas a vehículos para ambos roles. La migración `20261123130000_vehicles_and_order_creation.sql` añade la tabla `vehicles`, el vínculo de órdenes y permisos RLS; la base deriva la autoría y genera los IDs. RLS permite a ambos roles leer/crear vehículos, pero no actualizarlos ni borrarlos; las órdenes nuevas requieren un vehículo.
 - Crear, editar o eliminar servicios solo cambia la página en memoria. Esos cambios se pierden al recargar; el historial importado permanece en el código local. La maqueta no incluye carga ni gestión de fotos.
-- `Code.gs` y `appsscript.json` pertenecen al prototipo anterior de Apps Script. `APP_CONFIG.liveModeEnabled` permanece desactivado, no hay usuarios autorizados configurados y las funciones de API rechazan operaciones reales. No lo cambies a `true`.
-- `supabase/migrations/20261119210000_initial_rls_schema.sql` y `supabase/migrations/20261120112500_photo_upload_limits.sql` definen el esquema previo y sus políticas RLS. La migración de vehículos queda preparada; no se aplicó SQL remoto ni se desplegó código.
+- `Code.gs` sirve `Index.html` y lee la configuración pública de las propiedades del proyecto; conserva funciones de API heredadas que rechazan operaciones reales. `APP_CONFIG.liveModeEnabled` permanece desactivado y no hay usuarios autorizados allí. `appsscript.json` configura el proyecto. No habilites esas funciones heredadas.
+- `supabase/migrations/20261119210000_initial_rls_schema.sql` y `supabase/migrations/20261120112500_photo_upload_limits.sql` definen el esquema previo y sus políticas RLS. La migración de vehículos queda preparada; no se aplicó SQL remoto ni se creó o actualizó un despliegue web.
 - `supabase/tests/database/rls.sql` contiene pruebas pgTAP con usuarios, trabajos y fotos ficticios; no crea cuentas utilizables ni usa contraseñas reales.
 - El código de persistencia está implementado, pero no se conectó ni probó contra Supabase remoto. El historial de la moto es el único conjunto de datos reales incluido en el repositorio; no importes ese historial ni otros datos personales/fotos a Supabase.
 - El registro público de Auth está deshabilitado en `supabase/config.toml`. Antes de habilitar una conexión real, verifica en la configuración Auth del proyecto que también esté deshabilitado: ocultar un botón de registro no bloquea la API pública y los nuevos perfiles tienen rol `MECHANIC`.
 
-El estado de rotación de la contraseña de base de datos expuesta no se puede verificar desde este repositorio. No se realizó ninguna conexión ni operación remota. Antes de habilitar una conexión, confirma la rotación por un canal seguro; nunca compartas contraseñas ni claves por chat.
+El usuario confirmó la rotación de la contraseña de base de datos expuesta; el estado no se puede verificar desde este repositorio. Se cargaron los archivos de la aplicación al proyecto de Apps Script, pero no se conectó a Supabase, no se ejecutó SQL remoto ni se desplegó la aplicación. Antes de habilitar una conexión, verifica que el registro público esté deshabilitado; nunca compartas contraseñas ni claves por chat.
 
 La demo histórica puede ocultar acciones según un rol simulado para facilitar la revisión visual; eso no es un control de seguridad. En la aplicación autenticada, los permisos dependen de RLS. No se afirma que la autenticación o el control de acceso estén listos para producción.
 

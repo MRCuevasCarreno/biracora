@@ -4,7 +4,7 @@ const APP_CONFIG = Object.freeze({
 });
 
 function doGet() {
-  const template = HtmlService.createTemplateFromFile('index');
+  const template = HtmlService.createTemplateFromFile('Index');
   const properties = PropertiesService.getScriptProperties();
   template.supabaseUrl = properties.getProperty('SUPABASE_URL') || '';
   template.supabasePublishableKey = properties.getProperty('SUPABASE_PUBLISHABLE_KEY') || '';
