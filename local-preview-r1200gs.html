@@ -697,13 +697,13 @@
 
   const suppliesByCsvRow = {
     2: 'Aceite de motor; marca y cantidad no indicadas.',
-    3: '3 bujías: 1 de iridio y 2 normales. La nota menciona 2 Denso y 1 NGK.',
+    3: '3 bujías: 1 de iridio y 2 normales. La nota menciona 2 Denso y 1 NGK. Por confirmar: no se indica cuál marca corresponde a la bujía de iridio.',
     4: '4 bujías NGK de 2 electrodos (originales).',
     5: 'Líquidos de frenos, embrague y corona; pastillas delanteras y traseras; fuelles de cardán y corona; pernos de parabrisas; ampolleta trasera.',
     6: 'Retén exterior e interior de corona.',
     7: '2 bobinas principales.',
     8: 'Batería Motobatt MBYZ16H.',
-    9: 'Filtro de aire K&N.',
+    9: 'Filtro de aire KyN.',
     10: 'Aceite 20W-50 y filtro de aceite.',
     11: 'Aceites de corona y caja; switch de freno delantero y switch de embrague.',
     12: 'Aceite de corona y sensor de cambios.',
@@ -730,32 +730,56 @@
     36: 'Aceite de motor.',
     37: 'Retén de cigüeñal.',
     38: 'Golilla del tensor de distribución.',
-    40: 'Empaquetaduras de cilindros.',
+    40: 'empaquetadura cilindros',
     41: 'Líquido de corona.',
     42: 'Fuelles traseros.',
     43: 'Rodamientos de rueda delantera.',
     44: 'Llanta delantera de rayos (abono; queda saldo pendiente según la nota).',
     45: 'Neblineros/accesorios eléctricos.',
     46: 'Neblineros, toma USB y bocina de aire.',
-    47: 'Limpiadores K&N para filtro de aire.',
+    47: 'Limpiadores KyN para filtro de aire.',
     48: 'Bomba de bencina Bosch.',
     49: 'Cuerpo de aceleración izquierdo.',
     52: 'Aceite de corona Liqui Moly.'
   };
   const summaryByCsvRow = {
+    1: 'Adquisición de motocicleta (no es un trabajo de mantenimiento)',
     5: 'Mantención de frenos, embrague, corona, fuelles y luz trasera',
     6: 'Cambio de retenes de corona',
+    15: 'Compra de tapas de ampolletas; instalación por confirmar',
+    18: 'Compra de protector de foco; instalación por confirmar',
+    22: 'Mantención de admisión e instalación de DB Killer',
+    25: 'Compra de pastillas y filtro; instalación por confirmar',
     26: 'Cambio de embrague y retén de eje',
     28: 'Cambio de tensor de distribución (cilindro derecho)',
     29: 'Instalación de pernos del subchasis',
-    32: 'Inspección de fuelles de corona y basculante',
+    32: 'Observación de fuelles; ubicación y causa por confirmar',
+    36: 'Compra de aceite de motor; uso o cambio por confirmar',
+    39: 'Revisión de foco trasero; resultado por confirmar',
+    44: 'Abono de llanta delantera; instalación por confirmar',
     45: 'Renovación eléctrica de accesorios',
     46: 'Renovación eléctrica, neblineros, USB y bocina',
+    48: 'Bomba de Bencina; tipo de actividad por confirmar',
+    49: 'Compra de cuerpo de aceleración; instalación por confirmar',
     50: 'Mano de obra en bomba, aceleración, amortiguador e inyectores',
-    51: 'Reparación de amortiguador trasero'
+    51: 'Trabajo por confirmar'
   };
   const workByCsvRow = {
-    51: 'Reparación de amortiguador trasero (clasificado desde la nota del CSV).'
+    1: 'Adquisición de motocicleta; no se registra trabajo de mantenimiento. Descripción original: Compra de Motocicleta',
+    15: 'Por confirmar: no consta expresamente la instalación. Descripción original: Tapas de ampolletas para focos',
+    18: 'Por confirmar: no consta la instalación. Descripción original: Compra de protector de foco',
+    22: 'Mantención y Limpieza Admisión, Filtro de Aire\nInstalación DB Killer Escape (indicada en las observaciones del CSV)',
+    25: 'Por confirmar: no consta la instalación. Descripción original: Compra de Pastillas de Freno Traseras, Filtro de Aceite',
+    36: 'Por confirmar: no consta el uso o cambio del aceite. Descripción original: Compra Aceite Motor',
+    44: 'Por confirmar: consta un abono, no la instalación. Descripción original: abono llanta delantera de rayos',
+    48: 'Por confirmar: el tipo de actividad no está especificado en la descripción. Descripción original: Bomba de Bencina',
+    49: 'Por confirmar: no consta la instalación. Descripción original: compra cuerpo de aceleración izquierdo',
+    51: 'Por confirmar: el CSV no especifica el trabajo realizado.'
+  };
+  const confirmationNotesByCsvRow = {
+    32: 'Por confirmar: la causa por desgaste aparece como deducción y la ubicación del fuelle no está clara en el CSV.',
+    39: 'Resultado de la revisión por confirmar.',
+    51: 'El campo de trabajo está vacío; la nota original se conserva como observación, no como trabajo confirmado.'
   };
   const monthNumbers = {
     enero: '01',
@@ -794,6 +818,7 @@
     const fullWork = workByCsvRow[rowNumber] || work;
     const observations = [
       sourceNotes,
+      confirmationNotesByCsvRow[rowNumber],
       monthDiffersFromDate(date, month) && `Mes informado en CSV: ${month}`,
       sourceDate && !date && `Fecha original no interpretada: ${sourceDate}`
     ].filter(Boolean).join('\n');
