@@ -4,7 +4,7 @@ Bitácora Mecánica. `local-preview-r1200gs.html` conserva el historial real com
 
 ## Arquitectura elegida para evaluar
 
-La aplicación usa Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojan en Supabase, no en el Drive personal de Matías. La fuente de la aplicación se cargó al proyecto de Apps Script, pero no se creó ni actualizó un despliegue web.
+La aplicación usa Supabase Auth, Postgres con Row Level Security (RLS) y Storage privado para las fotos. Los registros y fotos se alojan en Supabase, no en el Drive personal de Matías. La aplicación se desplegó como web app de Apps Script con acceso `MYSELF` y ejecución como `USER_DEPLOYING`; solo la cuenta que la desplegó puede abrirla.
 
 La matriz de permisos de la base de datos es:
 
@@ -24,18 +24,18 @@ Roles y autoría deben derivarse de la identidad autenticada en la base de datos
 ## Estado actual y límites
 
 - `local-preview-r1200gs.html` sigue siendo una demostración visual local con el historial importado; no es una aplicación con inicio de sesión. `Index.html` es la entrada de autenticación por correo y contraseña; `AuthClient.html` recupera la sesión persistente, valida el rol desde el perfil propio y permite cerrar sesión.
-- El acceso permanece bloqueado si faltan `SUPABASE_URL` o `SUPABASE_PUBLISHABLE_KEY` en las propiedades del proyecto de Apps Script. En esta sesión no se encontraron esas variables en el entorno ni en `.env`; las propiedades privadas de Apps Script no se verificaron. La fuente se cargó al proyecto de Apps Script, pero no se conectó a Supabase ni se probaron credenciales.
+- El acceso permanece bloqueado si faltan `SUPABASE_URL` o `SUPABASE_PUBLISHABLE_KEY` en las propiedades del proyecto de Apps Script. El usuario indicó que ya las configuró; no se inspeccionaron sus valores. La app se desplegó con acceso restringido a la cuenta desplegadora, pero no se abrió ni se probó la conexión a Supabase.
 - `Client.html` conserva el historial importado y su separación revisada para la demostración local. No se incluye desde la entrada autenticada; las fechas ausentes o no interpretables y los kilometrajes vacíos se muestran sin inventar valores. La fecha `3/11/0201` se conserva en las observaciones como dato no interpretado.
 - Los resúmenes y la separación inicial entre trabajo, insumos y observaciones se prepararon localmente a partir del CSV. Las compras sin instalación explícita, los trabajos faltantes, los diagnósticos ambiguos y los resultados no registrados se señalan como “por confirmar”; los valores originales del CSV embebido se conservan. La instalación del DB Killer indicada en las observaciones también se muestra como trabajo. La maqueta no llama a un servicio de IA ni envía esos datos a terceros.
 - La pantalla autenticada consulta vehículos y órdenes, crea vehículos y crea órdenes vinculadas a vehículos para ambos roles. La migración `20261123130000_vehicles_and_order_creation.sql` añade la tabla `vehicles`, el vínculo de órdenes y permisos RLS; la base deriva la autoría y genera los IDs. RLS permite a ambos roles leer/crear vehículos, pero no actualizarlos ni borrarlos; las órdenes nuevas requieren un vehículo.
 - Crear, editar o eliminar servicios solo cambia la página en memoria. Esos cambios se pierden al recargar; el historial importado permanece en el código local. La maqueta no incluye carga ni gestión de fotos.
 - `Code.gs` sirve `Index.html` y lee la configuración pública de las propiedades del proyecto; conserva funciones de API heredadas que rechazan operaciones reales. `APP_CONFIG.liveModeEnabled` permanece desactivado y no hay usuarios autorizados allí. `appsscript.json` configura el proyecto. No habilites esas funciones heredadas.
-- `supabase/migrations/20261119210000_initial_rls_schema.sql` y `supabase/migrations/20261120112500_photo_upload_limits.sql` definen el esquema previo y sus políticas RLS. La migración de vehículos queda preparada; no se aplicó SQL remoto ni se creó o actualizó un despliegue web.
+- `supabase/migrations/20261119210000_initial_rls_schema.sql` y `supabase/migrations/20261120112500_photo_upload_limits.sql` definen el esquema previo y sus políticas RLS. La migración de vehículos queda preparada; no se aplicó SQL remoto.
 - `supabase/tests/database/rls.sql` contiene pruebas pgTAP con usuarios, trabajos y fotos ficticios; no crea cuentas utilizables ni usa contraseñas reales.
 - El código de persistencia está implementado, pero no se conectó ni probó contra Supabase remoto. El historial de la moto es el único conjunto de datos reales incluido en el repositorio; no importes ese historial ni otros datos personales/fotos a Supabase.
 - El registro público de Auth está deshabilitado en `supabase/config.toml`. Antes de habilitar una conexión real, verifica en la configuración Auth del proyecto que también esté deshabilitado: ocultar un botón de registro no bloquea la API pública y los nuevos perfiles tienen rol `MECHANIC`.
 
-El usuario confirmó la rotación de la contraseña de base de datos expuesta; el estado no se puede verificar desde este repositorio. Se cargaron los archivos de la aplicación al proyecto de Apps Script, pero no se conectó a Supabase, no se ejecutó SQL remoto ni se desplegó la aplicación. Antes de habilitar una conexión, verifica que el registro público esté deshabilitado; nunca compartas contraseñas ni claves por chat.
+El usuario confirmó la rotación de la contraseña de base de datos expuesta y que el registro público está deshabilitado; ninguno de esos estados se verificó independientemente. Se desplegó la app web privada de Apps Script. No se conectó ni probó Supabase y no se ejecutó SQL remoto. Nunca compartas contraseñas ni claves por chat.
 
 La demo histórica puede ocultar acciones según un rol simulado para facilitar la revisión visual; eso no es un control de seguridad. En la aplicación autenticada, los permisos dependen de RLS. No se afirma que la autenticación o el control de acceso estén listos para producción.
 
@@ -50,9 +50,9 @@ La demo histórica puede ocultar acciones según un rol simulado para facilitar 
 
 La vista previa local usa una configuración vacía, por lo que deja el botón de acceso deshabilitado y no carga el SDK. No se pudieron inspeccionar las propiedades privadas de Apps Script desde este entorno. Si se configuran las propiedades, `AuthClient.html` carga Supabase JS y el SDK gestiona la sesión y sus tokens; el cliente solo acepta la clave publicable. La demo histórica local sigue usando datos estáticos y no autentica ni persiste cambios.
 
-## Esquema y pruebas de seguridad (solo local, sin desplegar)
+## Esquema y pruebas de seguridad (sin SQL remoto)
 
-La migración define `profiles` ligado a `auth.users`, `jobs` con autoría y `job_photos` con metadatos/ruta de almacenamiento. Un trigger crea cada perfil como `MECHANIC`, sin confiar en metadatos del usuario. La migración no concede a clientes permisos para insertar/cambiar IDs, autoría o roles; la política de rol no permite escrituras desde el cliente.
+La migración define `profiles` ligado a `auth.users`, `jobs` con autoría y `job_photos` con metadatos/ruta de almacenamiento. Un trigger crea cada perfil como `MECHANIC` para nuevos usuarios y la migración crea perfiles `MECHANIC` para cuentas Auth existentes, sin cambiar perfiles que ya existan ni confiar en metadatos del usuario. La migración no concede a clientes permisos para insertar/cambiar IDs, autoría o roles; la política de rol no permite escrituras desde el cliente.
 
 ### Asignación inicial de ADMIN (procedimiento elegido; pendiente)
 
@@ -98,6 +98,6 @@ La documentación oficial describe [Supabase Auth](https://supabase.com/docs/gui
 - `appsscript.json`: configuración del prototipo Apps Script.
 - `prompt-inicial.txt`: prompt original, conservado.
 
-Para habilitar el acceso en Apps Script, primero confirma por un canal seguro que se rotó la contraseña de base de datos expuesta y que el registro público está deshabilitado en Auth. En Apps Script abre **Project Settings → Script properties** y agrega `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`, copiando ambos valores desde los ajustes API del proyecto correcto. No los compartas por chat ni los guardes en el repositorio; no uses `service_role`. Los usuarios deben ser las cuentas individuales existentes e indicadas para el proyecto, con sus propios correos/contraseñas; no se implementa registro ni se crean claves compartidas. Los perfiles nuevos reciben `MECHANIC`; la asignación inicial de ADMIN sigue el procedimiento documentado arriba.
+La app ya está desplegada en Apps Script con acceso `MYSELF`. En **Project Settings → Script properties**, configura `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY` copiando ambos valores desde los ajustes API del proyecto correcto. No los compartas por chat ni los guardes en el repositorio; no uses `service_role`. Los usuarios deben ser las cuentas individuales existentes e indicadas para el proyecto, con sus propios correos/contraseñas; no se implementa registro ni se crean claves compartidas. Los perfiles nuevos reciben `MECHANIC`; la asignación inicial de ADMIN sigue el procedimiento documentado arriba.
 
-Después de configurar las propiedades en Apps Script y desplegar desde el entorno autorizado, la interfaz consulta y crea vehículos y órdenes directamente con la clave publicable. La sesión/rol no reemplazan a RLS: Postgres valida el rol, la autoría, la selección de vehículo y las columnas permitidas.
+Al abrir la app, la interfaz consulta y crea vehículos y órdenes directamente con la clave publicable, siempre que las propiedades estén configuradas. La conexión aún no se ha probado. La sesión/rol no reemplazan a RLS: Postgres valida el rol, la autoría, la selección de vehículo y las columnas permitidas.

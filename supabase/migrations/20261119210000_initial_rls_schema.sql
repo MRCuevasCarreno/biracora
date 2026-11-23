@@ -78,6 +78,11 @@ create trigger create_profile_for_new_auth_user
 after insert on auth.users
 for each row execute function private.create_mechanic_profile();
 
+insert into public.profiles (id, role)
+select users.id, 'MECHANIC'
+from auth.users as users
+on conflict (id) do nothing;
+
 create function private.set_job_updated_at()
 returns trigger
 language plpgsql
